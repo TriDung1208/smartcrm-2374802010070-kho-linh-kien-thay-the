@@ -1,0 +1,58 @@
+<mxfile host="app.diagrams.net">
+  <diagram name="Page-1" id="PXsbRxApvo4UZ4mEw8Ek">
+    <mxGraphModel dx="1414" dy="811" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="boundary" parent="1" style="swimlane;whiteSpace=wrap;html=1;startSize=30;align=center;fontSize=14;fontStyle=1;fillColor=#f5f5f5;strokeColor=#666666;" value="Hệ thống Quản lý kho linh kiện thay thế" vertex="1">
+          <mxGeometry height="520" width="380" x="240" y="60" as="geometry" />
+        </mxCell>
+        <mxCell id="uc1" parent="boundary" style="ellipse;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="Tra cứu linh kiện thay thế" vertex="1">
+          <mxGeometry height="50" width="250" x="65" y="50" as="geometry" />
+        </mxCell>
+        <mxCell id="uc2" parent="boundary" style="ellipse;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="Xem tồn kho theo trung tâm" vertex="1">
+          <mxGeometry height="50" width="250" x="65" y="120" as="geometry" />
+        </mxCell>
+        <mxCell id="uc3" parent="boundary" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontStyle=1" value="Xuất linh kiện cho phiếu bảo hành" vertex="1">
+          <mxGeometry height="50" width="250" x="65" y="190" as="geometry" />
+        </mxCell>
+        <mxCell id="uc4" parent="boundary" style="ellipse;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="Ghi nhận nhập kho linh kiện" vertex="1">
+          <mxGeometry height="50" width="250" x="65" y="260" as="geometry" />
+        </mxCell>
+        <mxCell id="uc5" parent="boundary" style="ellipse;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="Kiểm tra ngưỡng tồn kho tối thiểu" vertex="1">
+          <mxGeometry height="50" width="250" x="65" y="330" as="geometry" />
+        </mxCell>
+        <mxCell id="uc6" parent="boundary" style="ellipse;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="Xem lịch sử giao dịch nhập xuất" vertex="1">
+          <mxGeometry height="50" width="250" x="65" y="400" as="geometry" />
+        </mxCell>
+        <mxCell id="actor_ktv" parent="1" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;" value="Kỹ thuật viên" vertex="1">
+          <mxGeometry height="80" width="40" x="110" y="150" as="geometry" />
+        </mxCell>
+        <mxCell id="actor_ql" parent="1" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;" value="Quản lý trung tâm" vertex="1">
+          <mxGeometry height="80" width="40" x="680" y="260" as="geometry" />
+        </mxCell>
+        <mxCell id="note" parent="1" style="shape=note;whiteSpace=wrap;html=1;background=yellow;size=15;verticalAlign=top;align=left;spacingLeft=5;spacingTop=5;fontSize=11;" value="CHÚ THÍCH:&#xa;- Hệ thống quản lý kho linh kiện thay thế.&#xa;- Use case trọng điểm: &#39;Xuất linh kiện cho phiếu bảo hành&#39;&#xa;  có cơ chế kiểm tra tồn kho &amp; luồng ngoại lệ từ chối nếu thiếu hàng." vertex="1">
+          <mxGeometry height="80" width="400" x="230" y="600" as="geometry" />
+        </mxCell>
+        <mxCell id="c1" edge="1" parent="1" source="actor_ktv" target="uc1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="c2" edge="1" parent="1" source="actor_ktv" target="uc3">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="c3" edge="1" parent="1" source="actor_ql" target="uc2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="c4" edge="1" parent="1" source="actor_ql" target="uc4">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="c5" edge="1" parent="1" source="actor_ql" target="uc5">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="c6" edge="1" parent="1" source="actor_ql" target="uc6">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

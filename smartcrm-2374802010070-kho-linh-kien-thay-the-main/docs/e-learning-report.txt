@@ -1,0 +1,12 @@
+1. Họ tên: Trần Trí Dũng | MSSV: 2374802010070 | Track: SE | Luồng: L5 – Kho linh kiện thay thế
+2. Link GitHub: [DÁN LINK REPO/COMMIT CỦA BẠN]
+3. User Story: 9 story, gồm 3 MUST, 3 SHOULD, 3 COULD; các story MUST có Given-When-Then và ngoại lệ.
+4. Use Case: 8 use case; 2 actor; có ranh giới hệ thống, chú thích và đặc tả UC03.
+5. SRS: docs/srs.md, gồm 6 mục và bảng truy vết FR–US–Use Case–MoSCoW đầy đủ.
+6. Mẫu Track SE: docs/api-contract.md, gồm endpoint, method, request/response JSON, HTTP status và validation.
+7. Checklist: [ĐIỀN SỐ MỤC THỰC TẾ SAU KHI PEER REVIEW]
+8. Peer Review – góp ý nhận được: [ĐIỀN GÓP Ý]
+9. Peer Review – thay đổi đã thực hiện: [ĐIỀN THAY ĐỔI]
+10. Câu hỏi/điểm còn cần xác nhận: [ĐIỀN NẾU CÓ]
+11. Quyết định đưa ra trong buổi học: [ĐIỀN]
+12. Commit cuối: [DÁN HASH COMMIT]
