@@ -1,18 +1,28 @@
 {
-  "name": "backend",
+  "name": "smartcrm-backend",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "Track SE backend for Smart CRM stock module",
+  "main": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "migrate": "node database/migrations/initDatabase.js",
+    "seed": "node database/seed.js",
+    "test": "node --test"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": [
+    "smartcrm",
+    "track-se",
+    "stock",
+    "service-center"
+  ],
+  "author": "Trần Trí Dũng",
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
-    "dotenv": "^18.0.4",
-    "express": "^5.2.1",
-    "pg": "^8.23.0"
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "pg": "^8.23.1",
+    "sqlite3": "^5.1.7"
   }
 }

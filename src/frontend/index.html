@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#f4f7fb">
+    <title>Smart CRM | Kho linh kiện</title>
+    <link rel="stylesheet" href="/styles.css">
+    <script src="/config.js"></script>
+    <script type="module" src="/app.js"></script>
+  </head>
+  <body>
+    <div class="shell">
+      <aside class="sidebar">
+        <a class="brand" href="/" aria-label="Smart CRM - Trang chủ">
+          <span class="brand-mark">S</span>
+          <span><strong>Smart CRM</strong><small>Quản lý kho linh kiện</small></span>
+        </a>
+        <p class="nav-label">KHÔNG GIAN LÀM VIỆC</p>
+        <nav class="navigation" aria-label="Điều hướng chính">
+          <button class="nav-item is-active" type="button" data-view="inventory"><span>▦</span> Tồn kho</button>
+          <button class="nav-item" type="button" data-view="issue"><span>⇧</span> Xuất linh kiện</button>
+          <button class="nav-item" type="button" data-view="warehouse"><span>↻</span> Nhập kho &amp; Lịch sử</button>
+        </nav>
+        <div class="sidebar-footer"><span class="status-dot"></span> Dữ liệu trực tiếp từ hệ thống</div>
+      </aside>
+
+      <main class="main-area">
+        <header class="topbar">
+          <div>
+            <p class="eyebrow">SMART CRM / L5</p>
+            <h1 id="page-title">Tổng quan kho</h1>
+          </div>
+          <div class="topbar-meta"><span class="center-chip" id="active-center">Trung tâm dịch vụ</span><span class="avatar">TD</span><span class="role-label">Chưa tích hợp đăng nhập</span></div>
+        </header>
+        <section id="notice" class="notice" aria-live="polite" hidden></section>
+        <section id="app" aria-live="polite"></section>
+      </main>
+    </div>
+  </body>
+</html>
