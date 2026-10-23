@@ -3,6 +3,8 @@
 
 # Dependencies & build
 node_modules/
+src/backend/data/*.db
+src/backend/data/*.sqlite
 bin/
 obj/
 target/
