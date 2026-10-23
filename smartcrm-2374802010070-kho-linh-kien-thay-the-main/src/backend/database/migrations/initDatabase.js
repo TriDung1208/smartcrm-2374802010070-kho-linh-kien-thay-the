@@ -2,7 +2,7 @@ const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
 const fs = require('fs');
 
-const DB_PATH = path.join(__dirname, '../../data/smartcrm.db');
+const DB_PATH = process.env.SMARTCRM_DB_PATH || path.join(__dirname, '../../data/smartcrm.db');
 const DATA_DIR = path.dirname(DB_PATH);
 
 function ensureDbDir() {

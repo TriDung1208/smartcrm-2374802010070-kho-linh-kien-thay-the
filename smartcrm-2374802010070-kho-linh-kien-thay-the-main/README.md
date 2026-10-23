@@ -42,6 +42,11 @@ nhận nhập kho.
 │   ├── Untitled Diagram.drawio
 │   └── diagrams/
 ├── src/
+│   ├── frontend/
+│   │   ├── api/
+│   │   ├── components/
+│   │   ├── app.js
+│   │   └── index.html
 │   └── backend/
 │       ├── database/
 │       ├── src/
@@ -64,12 +69,36 @@ nhận nhập kho.
 - Tình trạng: đã đạt rõ thành phần core đầu tiên của Sprint 1, sẵn sàng cho mở rộng các module tiếp theo.
 
 ## 7. Hướng dẫn cài đặt & chạy
+
+Từ thư mục gốc của repository, cài đặt và chạy backend (backend cũng phục vụ giao diện):
+
 ```bash
 cd src/backend
 npm install
 npm run migrate
 npm run seed
 npm start
+```
+
+Mở `http://localhost:3000` để dùng giao diện kho; API mặc định dùng `/api/v1`.
+Nếu API chạy ở địa chỉ khác, đặt `API_BASE_URL` trong `.env` (ví dụ
+`http://localhost:3000/api/v1`). Chỉ dùng `.env.example` làm mẫu và không commit
+`.env`. Có thể đặt `SMARTCRM_DB_PATH` để dùng một tệp SQLite riêng thay cho
+`src/backend/data/smartcrm.db`.
+
+Giao diện kho theo wireframe gồm ba màn hình: tồn kho, xuất linh kiện và nhập
+kho/lịch sử giao dịch. Tìm kiếm tồn kho chạy trên danh sách đã tải từ API; lọc
+ngày, loại và linh kiện trong lịch sử cũng áp dụng trên dữ liệu lịch sử tải về.
+
+Lưu ý phạm vi: backend hiện chưa có xác thực người dùng hoặc module phiếu bảo
+hành. Giao diện gửi token nếu đã có trong `localStorage`, xóa token khi API trả
+401; khi xuất kho, mã phiếu được kiểm tra là số nguyên dương và lưu làm tham
+chiếu, nhưng chưa thể xác minh phiếu tồn tại.
+
+Chạy kiểm thử quy tắc nghiệp vụ từ thư mục `src/backend`:
+
+```bash
+npm test
 ```
 
 ## 8. Khai báo sử dụng công cụ AI

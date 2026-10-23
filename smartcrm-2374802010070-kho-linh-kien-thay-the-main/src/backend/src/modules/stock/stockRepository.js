@@ -1,5 +1,6 @@
 const sqlite3 = require('sqlite3').verbose();
 const { DB_PATH } = require('../../../database/migrations/initDatabase');
+const { calculateStockChange } = require('./stockRules');
 
 function openDb() {
   return new Promise((resolve, reject) => {
@@ -14,7 +15,7 @@ async function getStockByCenterAndPart(centerId, partId) {
   const db = await openDb();
   return new Promise((resolve, reject) => {
     db.get(
-      'SELECT s.center_id, s.part_id, p.part_code, p.part_name, s.quantity AS current_stock, s.min_threshold, (s.quantity < s.min_threshold) AS low_stock FROM part_stock s JOIN parts p ON p.part_id = s.part_id WHERE s.center_id = ? AND s.part_id = ?',
+      'SELECT s.center_id, s.part_id, p.part_code, p.part_name, p.unit_price, s.quantity AS current_stock, s.min_threshold, (s.quantity < s.min_threshold) AS low_stock FROM part_stock s JOIN parts p ON p.part_id = s.part_id WHERE s.center_id = ? AND s.part_id = ?',
       [centerId, partId],
       (error, row) => {
         db.close();
@@ -28,7 +29,7 @@ async function getStockByCenterAndPart(centerId, partId) {
 async function getAllStock(centerId = null) {
   const db = await openDb();
   return new Promise((resolve, reject) => {
-    const query = centerId ? 'SELECT s.center_id, s.part_id, p.part_code, p.part_name, s.quantity AS current_stock, s.min_threshold FROM part_stock s JOIN parts p ON p.part_id = s.part_id WHERE s.center_id = ? ORDER BY s.part_id' : 'SELECT s.center_id, s.part_id, p.part_code, p.part_name, s.quantity AS current_stock, s.min_threshold FROM part_stock s JOIN parts p ON p.part_id = s.part_id ORDER BY s.center_id, s.part_id';
+    const query = centerId ? 'SELECT s.center_id, s.part_id, p.part_code, p.part_name, p.unit_price, s.quantity AS current_stock, s.min_threshold FROM part_stock s JOIN parts p ON p.part_id = s.part_id WHERE s.center_id = ? ORDER BY s.part_id' : 'SELECT s.center_id, s.part_id, p.part_code, p.part_name, p.unit_price, s.quantity AS current_stock, s.min_threshold FROM part_stock s JOIN parts p ON p.part_id = s.part_id ORDER BY s.center_id, s.part_id';
     db.all(query, centerId ? [centerId] : [], (error, rows) => {
       db.close();
       if (error) return reject(error);
@@ -82,6 +83,68 @@ async function createTransaction({ centerId, partId, transactionType, quantity, 
   });
 }
 
+async function applyStockTransaction({ centerId, partId, quantity, transactionType, ticketCode }) {
+  const db = await openDb();
+
+  return new Promise((resolve, reject) => {
+    const fail = (error) => {
+      db.run('ROLLBACK', () => db.close(() => reject(error)));
+    };
+
+    db.run('BEGIN IMMEDIATE', (beginError) => {
+      if (beginError) {
+        return db.close(() => reject(beginError));
+      }
+
+      db.get(
+        'SELECT quantity, min_threshold FROM part_stock WHERE center_id = ? AND part_id = ?',
+        [centerId, partId],
+        (selectError, stock) => {
+          if (selectError) return fail(selectError);
+          if (!stock) {
+            const error = new Error('Stock item not found for center');
+            error.statusCode = 404;
+            error.code = 'STOCK_NOT_FOUND';
+            return fail(error);
+          }
+
+          let currentStock;
+          try {
+            currentStock = calculateStockChange(stock.quantity, quantity, transactionType);
+          } catch (error) {
+            return fail(error);
+          }
+
+          db.run(
+            'UPDATE part_stock SET quantity = ? WHERE center_id = ? AND part_id = ?',
+            [currentStock, centerId, partId],
+            (updateError) => {
+              if (updateError) return fail(updateError);
+
+              db.run(
+                'INSERT INTO part_transactions (center_id, part_id, transaction_type, quantity, ticket_code) VALUES (?, ?, ?, ?, ?)',
+                [centerId, partId, transactionType, quantity, ticketCode || null],
+                function (insertError) {
+                  if (insertError) return fail(insertError);
+                  const transactionId = this.lastID;
+
+                  db.run('COMMIT', (commitError) => {
+                    if (commitError) return fail(commitError);
+                    db.close((closeError) => {
+                      if (closeError) return reject(closeError);
+                      resolve({ transactionId, currentStock, minThreshold: stock.min_threshold });
+                    });
+                  });
+                }
+              );
+            }
+          );
+        }
+      );
+    });
+  });
+}
+
 async function getTransactions(centerId = null, type = null) {
   const db = await openDb();
   return new Promise((resolve, reject) => {
@@ -110,5 +173,6 @@ module.exports = {
   getLowStock,
   upsertStock,
   createTransaction,
+  applyStockTransaction,
   getTransactions
 };

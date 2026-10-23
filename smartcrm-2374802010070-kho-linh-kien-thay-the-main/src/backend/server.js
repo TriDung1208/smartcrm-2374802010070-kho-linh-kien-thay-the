@@ -12,12 +12,19 @@ dotenv.config({ path: path.join(__dirname, '../../.env') });
 
 const app = express();
 const PORT = process.env.APP_PORT || 3000;
+const frontendPath = path.join(__dirname, '../frontend');
 
 app.use(express.json());
+app.get('/config.js', (req, res) => {
+  res.type('application/javascript').send(
+    `window.SMARTCRM_API_BASE = ${JSON.stringify(process.env.API_BASE_URL || '/api/v1')};`
+  );
+});
 app.use('/api/v1/service-centers', serviceCenterRoutes);
 app.use('/api/v1/issue-categories', issueCategoryRoutes);
 app.use('/api/v1/technicians', technicianRoutes);
 app.use('/api/v1', stockRoutes);
+app.use(express.static(frontendPath));
 
 app.get('/health', (req, res) => {
   res.json({ ok: true, service: 'smartcrm-stock-module', timestamp: new Date().toISOString() });

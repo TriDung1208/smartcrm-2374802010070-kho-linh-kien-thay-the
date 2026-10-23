@@ -15,7 +15,7 @@ router.get('/stocks', async (req, res) => {
     return res.status(error.statusCode || 500).json({
       code: error.code || 'INTERNAL_ERROR',
       message: error.message || 'Internal server error',
-      details: {}
+      details: error.details || {}
     });
   }
 });
@@ -28,7 +28,7 @@ router.post('/stock-receipts', async (req, res) => {
     res.status(error.statusCode || 500).json({
       code: error.code || 'INTERNAL_ERROR',
       message: error.message || 'Internal server error',
-      details: {}
+      details: error.details || {}
     });
   }
 });
@@ -39,9 +39,9 @@ router.post('/stock-issues', async (req, res) => {
     res.status(201).json(result);
   } catch (error) {
     res.status(error.statusCode || 500).json({
-      code: error.code || 'INSUFFICIENT_STOCK',
-      message: error.message || 'Stock is not sufficient',
-      details: {}
+      code: error.code || 'INTERNAL_ERROR',
+      message: error.message || 'Internal server error',
+      details: error.details || {}
     });
   }
 });
@@ -54,7 +54,7 @@ router.get('/stock-alerts', async (req, res) => {
     res.status(error.statusCode || 500).json({
       code: error.code || 'INTERNAL_ERROR',
       message: error.message || 'Internal server error',
-      details: {}
+      details: error.details || {}
     });
   }
 });
@@ -67,7 +67,7 @@ router.get('/stock-transactions', async (req, res) => {
     res.status(error.statusCode || 500).json({
       code: error.code || 'INTERNAL_ERROR',
       message: error.message || 'Internal server error',
-      details: {}
+      details: error.details || {}
     });
   }
 });

@@ -1,4 +1,5 @@
-const { getStockByCenterAndPart, getAllStock, getLowStock, upsertStock, createTransaction, getTransactions } = require('./stockRepository');
+const { getStockByCenterAndPart, getAllStock, getLowStock, applyStockTransaction, getTransactions } = require('./stockRepository');
+const { validateStockMutation } = require('./stockRules');
 
 async function getStock(centerId, partId) {
   if (!centerId || !partId) {
@@ -34,78 +35,41 @@ async function getAlerts(centerId = null) {
 }
 
 async function receiveStock({ centerId, partId, quantity, note = '' }) {
-  if (!centerId || !partId || !quantity || Number(quantity) <= 0) {
-    const error = new Error('Invalid quantity or centerId/partId');
-    error.statusCode = 400;
-    throw error;
-  }
-
-  const existing = await getStockByCenterAndPart(Number(centerId), Number(partId));
-  if (!existing) {
-    const error = new Error('Stock item not found for center');
-    error.statusCode = 404;
-    throw error;
-  }
-
-  const newQuantity = existing.current_stock + Number(quantity);
-  await upsertStock(Number(centerId), Number(partId), newQuantity, existing.min_threshold);
-  const transactionId = await createTransaction({
-    centerId: Number(centerId),
-    partId: Number(partId),
+  const values = validateStockMutation({ centerId, partId, quantity, type: 'IN' });
+  const result = await applyStockTransaction({
+    ...values,
     transactionType: 'IN',
-    quantity: Number(quantity),
-    ticketCode: note || null
+    ticketCode: note
   });
 
   return {
-    transactionId,
+    transactionId: result.transactionId,
     type: 'IN',
-    centerId: Number(centerId),
-    partId: Number(partId),
-    quantity: Number(quantity),
-    currentStock: newQuantity
+    centerId: values.centerId,
+    partId: values.partId,
+    quantity: values.quantity,
+    currentStock: result.currentStock
   };
 }
 
 async function issueStock({ centerId, partId, ticketId, quantity, note = '' }) {
-  if (!centerId || !partId || !quantity || Number(quantity) <= 0) {
-    const error = new Error('Invalid quantity or centerId/partId');
-    error.statusCode = 400;
-    throw error;
-  }
-
-  const existing = await getStockByCenterAndPart(Number(centerId), Number(partId));
-  if (!existing) {
-    const error = new Error('Stock item not found for center');
-    error.statusCode = 404;
-    throw error;
-  }
-
-  if (Number(quantity) > existing.current_stock) {
-    const error = new Error(`Available stock is ${existing.current_stock} but requested quantity is ${quantity}`);
-    error.statusCode = 409;
-    error.code = 'INSUFFICIENT_STOCK';
-    throw error;
-  }
-
-  const newQuantity = existing.current_stock - Number(quantity);
-  await upsertStock(Number(centerId), Number(partId), newQuantity, existing.min_threshold);
-  const transactionId = await createTransaction({
-    centerId: Number(centerId),
-    partId: Number(partId),
+  const values = validateStockMutation({ centerId, partId, ticketId, quantity, type: 'OUT' });
+  const result = await applyStockTransaction({
+    centerId: values.centerId,
+    partId: values.partId,
+    quantity: values.quantity,
     transactionType: 'OUT',
-    quantity: Number(quantity),
-    ticketCode: ticketId ? `TICKET-${ticketId}` : null
+    ticketCode: `TICKET-${values.ticketId}${note ? `: ${note}` : ''}`
   });
 
   return {
-    transactionId,
+    transactionId: result.transactionId,
     type: 'OUT',
-    centerId: Number(centerId),
-    partId: Number(partId),
-    ticketId: Number(ticketId),
-    quantity: Number(quantity),
-    currentStock: newQuantity
+    centerId: values.centerId,
+    partId: values.partId,
+    ticketId: values.ticketId,
+    quantity: values.quantity,
+    currentStock: result.currentStock
   };
 }
 
