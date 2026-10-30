@@ -6,6 +6,7 @@ import {
   listTransactions,
   receiveStock
 } from './api/stock.api.js';
+import { login, register } from './api/auth.api.js';
 import { showDataState } from './components/data-state.js';
 
 const app = document.querySelector('#app');
@@ -44,6 +45,106 @@ function showNotice(message, kind = 'success') {
 function clearNotice() {
   notice.hidden = true;
   notice.textContent = '';
+}
+
+function setAuthenticatedUI(username) {
+  document.body.classList.remove('auth-screen');
+  document.querySelector('#session-user').textContent = username ? `Xin chào, ${username}` : 'Tài khoản';
+  document.querySelector('#logout-button').hidden = false;
+}
+
+function showLoginScreen(message = '') {
+  document.body.classList.add('auth-screen');
+  document.querySelector('#logout-button').hidden = true;
+  clearNotice();
+  app.replaceChildren();
+
+  let mode = 'login';
+  const layout = element('section', 'auth-layout');
+  const card = element('div', 'auth-card');
+  const brand = element('div', 'auth-brand');
+  brand.append(element('span', 'brand-mark', 'S'));
+  const brandCopy = element('div');
+  brandCopy.append(element('strong', '', 'Smart CRM'), element('span', '', 'Quản lý kho linh kiện'));
+  brand.append(brandCopy);
+
+  const title = element('h1', 'auth-title');
+  const subtitle = element('p', 'auth-subtitle');
+  const form = element('form', 'auth-form');
+  const usernameLabel = element('label', 'field');
+  usernameLabel.append(element('span', 'field-label', 'Tên đăng nhập'));
+  const usernameInput = element('input', 'text-control');
+  usernameInput.name = 'username';
+  usernameInput.autocomplete = 'username';
+  usernameInput.minLength = 3;
+  usernameInput.maxLength = 32;
+  usernameInput.required = true;
+  usernameLabel.append(usernameInput);
+
+  const passwordLabel = element('label', 'field');
+  passwordLabel.append(element('span', 'field-label', 'Mật khẩu'));
+  const passwordInput = element('input', 'text-control');
+  passwordInput.name = 'password';
+  passwordInput.type = 'password';
+  passwordInput.autocomplete = 'current-password';
+  passwordInput.minLength = 8;
+  passwordInput.maxLength = 128;
+  passwordInput.required = true;
+  passwordLabel.append(passwordInput);
+
+  const feedback = element('p', 'auth-feedback');
+  const submit = element('button', 'button button-primary auth-submit');
+  submit.type = 'submit';
+  const toggle = element('button', 'text-button auth-toggle');
+  toggle.type = 'button';
+  toggle.addEventListener('click', () => {
+    mode = mode === 'login' ? 'register' : 'login';
+    renderMode();
+  });
+
+  function renderMode() {
+    const isRegister = mode === 'register';
+    title.textContent = isRegister ? 'Tạo tài khoản' : 'Đăng nhập';
+    subtitle.textContent = isRegister
+      ? 'Tạo tài khoản để bắt đầu quản lý kho linh kiện.'
+      : 'Đăng nhập để tiếp tục vào không gian làm việc.';
+    passwordInput.autocomplete = isRegister ? 'new-password' : 'current-password';
+    submit.textContent = isRegister ? 'Đăng ký' : 'Đăng nhập';
+    toggle.textContent = isRegister ? 'Đã có tài khoản? Đăng nhập' : 'Chưa có tài khoản? Đăng ký';
+    feedback.textContent = message;
+    feedback.classList.toggle('is-error', Boolean(message));
+    form.replaceChildren(usernameLabel, passwordLabel, feedback, submit, toggle);
+  }
+
+  form.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    message = '';
+    feedback.textContent = '';
+    submit.disabled = true;
+    try {
+      const authenticate = mode === 'register' ? register : login;
+      const result = await authenticate(usernameInput.value, passwordInput.value);
+      window.localStorage.setItem('token', result.token);
+      window.localStorage.setItem('username', result.user.username);
+      setAuthenticatedUI(result.user.username);
+      openInventory();
+    } catch (error) {
+      message = error.message;
+      feedback.textContent = message;
+      feedback.classList.add('is-error');
+    } finally {
+      submit.disabled = false;
+    }
+  });
+
+  renderMode();
+  card.append(brand, title, subtitle, form);
+  if (message) {
+    feedback.textContent = message;
+    feedback.classList.add('is-error');
+  }
+  layout.append(card);
+  app.append(layout);
 }
 
 function setView(view) {
@@ -753,8 +854,22 @@ document.querySelectorAll('[data-view]').forEach((item) => {
   });
 });
 
+document.querySelector('#logout-button').addEventListener('click', () => {
+  window.localStorage.removeItem('token');
+  window.localStorage.removeItem('username');
+  showLoginScreen();
+});
+
+window.addEventListener('smartcrm:unauthorized', () => showLoginScreen('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.'));
+
 window.addEventListener('unhandledrejection', (event) => {
   showNotice(event.reason?.message || 'Đã xảy ra lỗi không xác định.', 'error');
 });
 
-openInventory();
+const existingToken = window.localStorage.getItem('token');
+if (existingToken) {
+  setAuthenticatedUI(window.localStorage.getItem('username'));
+  openInventory();
+} else {
+  showLoginScreen();
+}

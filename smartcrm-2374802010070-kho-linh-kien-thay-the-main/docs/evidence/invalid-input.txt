@@ -1,0 +1,7 @@
+PS> curl.exe -X POST /api/v1/stock-receipts -d {"centerId":1,"partId":1,"quantity":0}
+HTTP 400
+{"code":"INVALID_QUANTITY","message":"quantity must be a positive integer","details":{}}
+
+PS> curl.exe -X POST /api/v1/stock-receipts --data-raw '{broken'
+HTTP 400
+{"code":"INVALID_JSON","message":"Nội dung request phải là JSON hợp lệ."}

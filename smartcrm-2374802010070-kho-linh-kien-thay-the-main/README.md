@@ -1,113 +1,116 @@
-# Smart CRM – Quản lý kho linh kiện thay thế
+# Smart CRM Mekong Mobile – L5 Kho linh kiện thay thế
 
-**Sinh viên:** Trần Trí Dũng – MSSV: 2374802010070
-**Track:** SE
-**Học phần:** Chuyên đề Tốt nghiệp 1 – Trường ĐH Văn Lang
+**Bài toán tổng thể:** Hệ thống tiếp nhận và phân loại yêu cầu bảo hành cho Mekong Mobile.
+**Phạm vi BT2:** phân hệ L5 – quản lý kho linh kiện thay thế.
+**Track:** SE · **Sinh viên:** Trần Trí Dũng · **MSSV:** 2374802010070
 
-## 1. Mô tả bài toán
-Theo dõi tồn kho linh kiện theo trung tâm, xuất linh kiện cho phiếu bảo hành
-(có kiểm tra tồn kho trước khi xuất), cảnh báo khi tồn dưới ngưỡng, và ghi
-nhận nhập kho.
+Phân hệ hỗ trợ tra cứu tồn kho theo trung tâm, nhập kho, xuất linh kiện có kiểm tra tồn, cảnh báo dưới ngưỡng và xem lịch sử giao dịch. Mã phiếu bảo hành được lưu làm tham chiếu khi xuất; phiên bản này chưa kết nối hoặc xác minh phiếu với một phân hệ bảo hành.
 
-## 2. Yêu cầu môi trường
-| Thành phần | Yêu cầu |
+## Môi trường
+
+| Thành phần | Phiên bản |
 |---|---|
-| Hệ điều hành | Windows 10/11, Ubuntu 22.04 hoặc macOS |
 | Node.js | 18.x hoặc 20.x |
-| npm | 9.x trở lên |
-| Database | SQLite 3 (dự phòng) hoặc PostgreSQL 14+ |
-| Công cụ hỗ trợ | Git, curl/Postman để test API |
+| npm | Đi kèm Node.js (npm 9 trở lên) |
+| Cơ sở dữ liệu | SQLite, tạo tự động khi migrate |
+| Hệ điều hành | Windows 10/11, Ubuntu hoặc macOS |
 
-## 3. Phạm vi
-- Làm: ghi nhận nhập kho, xem tồn kho theo trung tâm, xuất linh kiện cho
-  phiếu bảo hành (validate không xuất quá tồn), cảnh báo khi tồn dưới
-  ngưỡng, xem lịch sử giao dịch
-- Không làm: quản lý mua hàng/nhà cung cấp, kế toán/giá vốn kho, quản lý
-  đa kho tổng ngoài trung tâm dịch vụ
+`src/backend/package-lock.json` khóa phiên bản dependency để `npm ci` cài đúng bộ thư viện.
 
-## 4. Công nghệ sử dụng
-| Thành phần | Công nghệ |
-|---|---|
-| Backend | Node.js + Express |
-| Database | SQLite (dự phòng), PostgreSQL-compatible nếu triển khai production |
-| API test | curl / Postman |
+## Cài đặt và chạy
 
-## 5. Cấu trúc thư mục
-```text
-├── docs/
-│   ├── ai-disclosure.md
-│   ├── api-contract.md
-│   ├── srs.md
-│   ├── thay-doi-thiet-ke.md
-│   ├── Untitled Diagram.drawio
-│   └── diagrams/
-├── src/
-│   ├── frontend/
-│   │   ├── api/
-│   │   ├── components/
-│   │   ├── app.js
-│   │   └── index.html
-│   └── backend/
-│       ├── database/
-│       ├── src/
-│       ├── package.json
-│       ├── server.js
-│       └── data/
-├── tests/
-├── .env.example
-├── .gitignore
-├── README.md
-└── .env
-```
+Từ PowerShell, clone repo và tạo `.env` từ mẫu:
 
-## 6. Trạng thái hiện tại của hệ thống ở buổi 8
-- Đã hoàn thiện phần thiết kế cạnh nghề nghiệp: SRS, Use Case, API contract, phụ lục AI và bảng thay đổi theo phản hồi BT1.
-- Đã dựng module backend đầu tiên cho luồng L5 – kho linh kiện thay thế theo kiến trúc 3 lớp: routes → service → repository.
-- Đã tạo migration SQLite và seed dữ liệu danh mục từ bộ mẫu `service_centers`, `issue_categories`, `technicians` và `parts`.
-- Đã triển khai các endpoint chính: tra cứu tồn kho, cảnh báo tồn thấp, nhập kho, xuất kho và xem lịch sử giao dịch.
-- Đã chạy kiểm thử bằng `curl` với kết quả hợp lệ và lưu minh chứng trong thư mục `docs/`.
-- Tình trạng: đã đạt rõ thành phần core đầu tiên của Sprint 1, sẵn sàng cho mở rộng các module tiếp theo.
-
-## 7. Hướng dẫn cài đặt & chạy
-
-Từ thư mục gốc của repository, cài đặt và chạy backend (backend cũng phục vụ giao diện):
-
-```bash
-cd src/backend
-npm install
+```powershell
+git clone https://github.com/TriDung1208/smartcrm-2374802010070-kho-linh-kien-thay-the.git thu-nghiem
+Set-Location thu-nghiem
+Copy-Item .env.example .env
+Set-Location src\backend
+npm ci
 npm run migrate
 npm run seed
+npm test
 npm start
 ```
 
-Mở `http://localhost:3000` để dùng giao diện kho; API mặc định dùng `/api/v1`.
-Nếu API chạy ở địa chỉ khác, đặt `API_BASE_URL` trong `.env` (ví dụ
-`http://localhost:3000/api/v1`). Chỉ dùng `.env.example` làm mẫu và không commit
-`.env`. Có thể đặt `SMARTCRM_DB_PATH` để dùng một tệp SQLite riêng thay cho
-`src/backend/data/smartcrm.db`.
+Trên macOS/Linux, thay `Copy-Item .env.example .env` bằng `cp .env.example .env`; các lệnh còn lại chạy trong `src/backend`.
 
-Giao diện kho theo wireframe gồm ba màn hình: tồn kho, xuất linh kiện và nhập
-kho/lịch sử giao dịch. Tìm kiếm tồn kho chạy trên danh sách đã tải từ API; lọc
-ngày, loại và linh kiện trong lịch sử cũng áp dụng trên dữ liệu lịch sử tải về.
+- Backend và giao diện tích hợp: <http://localhost:3000>
+- Health check: <http://localhost:3000/health>
+- Cơ sở dữ liệu mặc định: `src/backend/data/smartcrm.db`
+- Migration tạo cấu trúc bảng; seed có thể chạy lặp mà không chèn trùng dữ liệu.
+- Khi cần cấu hình token ổn định qua lần khởi động, đặt `AUTH_TOKEN_SECRET` trong `.env` bằng giá trị ngẫu nhiên riêng. Không dùng giá trị thật trong `.env.example`.
 
-Lưu ý phạm vi: backend hiện chưa có xác thực người dùng hoặc module phiếu bảo
-hành. Giao diện gửi token nếu đã có trong `localStorage`, xóa token khi API trả
-401; khi xuất kho, mã phiếu được kiểm tra là số nguyên dương và lưu làm tham
-chiếu, nhưng chưa thể xác minh phiếu tồn tại.
+### Chạy giao diện độc lập với backend
 
-Chạy kiểm thử quy tắc nghiệp vụ từ thư mục `src/backend`:
+Để giao diện vẫn tải được khi backend tắt, mở terminal thứ hai tại `src/backend`:
 
-```bash
+```powershell
+npm run frontend
+```
+
+Mở <http://localhost:5173>. Giao diện được phục vụ độc lập; yêu cầu API được chuyển đến backend tại cổng 3000. Khi backend không chạy, trang vẫn mở và hiển thị thông báo máy chủ không khả dụng thay vì bị sập.
+
+## Kiến trúc và chức năng
+
+Backend dùng kiến trúc ba lớp `routes → service → repository`; migration và seed nằm trong `src/backend/database`. SQLite lưu dữ liệu theo trung tâm, giao dịch nhập/xuất cập nhật tồn và lịch sử trong cùng transaction.
+
+Các màn hình gọi API thật:
+
+1. **Tồn kho:** tìm kiếm, lọc trạng thái và xem ngưỡng cảnh báo.
+2. **Xuất linh kiện:** kiểm tra dữ liệu, tồn khả dụng và mã phiếu tham chiếu.
+3. **Nhập kho & lịch sử:** ghi nhận nhập và tra cứu giao dịch.
+
+Hai thực thể có API CRUD đầy đủ là **trung tâm dịch vụ** và **nhóm lỗi**. Các API nghiệp vụ cần đăng nhập; đăng ký tài khoản dùng cho demo được mở công khai. Bản hiện tại chưa phân quyền theo vai trò.
+
+## Kiểm thử
+
+Chạy tất cả kiểm thử bằng một lệnh từ `src/backend`:
+
+```powershell
 npm test
 ```
 
-## 8. Khai báo sử dụng công cụ AI
-| Công cụ | Dùng vào việc gì | Cách tự kiểm chứng |
-|---|---|---|
-| GitHub Copilot / AI Assistant | Hỗ trợ rà soát chặt chẽ giữa SRS, sơ đồ, ERD và phản hồi BT1; đề xuất sửa inconsistency; định dạng tài liệu | Mọi thay đổi đều được kiểm lại bằng logic nghiệp vụ và sửa theo phản hồi của giảng viên |
-| Không có công cụ AI nào thay thế trách nhiệm kỹ thuật của người làm | Chỉ hỗ trợ tăng tốc độ đọc, soát lỗi, và cấu trúc lại bản ghi | Người thực hiện tự xác nhận kết quả trước khi commit |
+Node.js test runner kiểm tra luồng đúng, biên, dữ liệu sai, CRUD, chống xóa trung tâm đang được tham chiếu và seed lặp. Kết quả kiểm thử phải được chạy lại tại máy nộp; không dùng dữ liệu SQLite sẵn có làm fixture.
 
-## 9. Commit và kiểm tra
-- Commit thiết kế: `docs: điều chỉnh thiết kế theo phản hồi BT1`
-- Commit module core: `feat: build stock module core for track se`
-- Đã thực hiện kiểm tra API bằng curl và lưu hình ảnh kết quả trong `docs/`.
+## Thử API bằng curl
+
+Đăng ký tài khoản thử nghiệm:
+
+```powershell
+curl.exe -X POST http://localhost:3000/api/v1/auth/register -H "Content-Type: application/json" -d "{\"username\":\"demo.user\",\"password\":\"Demo-Pass-2026\"}"
+```
+
+Sao chép `token` trong response rồi dùng header `Authorization: Bearer <TOKEN>` cho các route dưới đây.
+
+### Trung tâm dịch vụ
+
+```powershell
+curl.exe http://localhost:3000/api/v1/service-centers -H "Authorization: Bearer <TOKEN>"
+curl.exe -X POST http://localhost:3000/api/v1/service-centers -H "Authorization: Bearer <TOKEN>" -H "Content-Type: application/json" -d "{\"centerCode\":\"TT99\",\"centerName\":\"TTBH Demo\",\"city\":\"Cần Thơ\"}"
+curl.exe -X PUT http://localhost:3000/api/v1/service-centers/7 -H "Authorization: Bearer <TOKEN>" -H "Content-Type: application/json" -d "{\"centerCode\":\"TT99\",\"centerName\":\"TTBH Demo cập nhật\",\"city\":\"Cần Thơ\"}"
+curl.exe -X DELETE http://localhost:3000/api/v1/service-centers/7 -H "Authorization: Bearer <TOKEN>"
+```
+
+### Nhóm lỗi
+
+```powershell
+curl.exe http://localhost:3000/api/v1/issue-categories -H "Authorization: Bearer <TOKEN>"
+curl.exe -X POST http://localhost:3000/api/v1/issue-categories -H "Authorization: Bearer <TOKEN>" -H "Content-Type: application/json" -d "{\"categoryName\":\"LOI_KET_NOI\",\"defaultPriority\":\"CAO\",\"isActive\":true}"
+curl.exe -X PUT http://localhost:3000/api/v1/issue-categories/7 -H "Authorization: Bearer <TOKEN>" -H "Content-Type: application/json" -d "{\"categoryName\":\"LOI_KET_NOI\",\"defaultPriority\":\"TRUNG_BINH\",\"isActive\":true}"
+curl.exe -X DELETE http://localhost:3000/api/v1/issue-categories/7 -H "Authorization: Bearer <TOKEN>"
+```
+
+ID `7` là ví dụ; dùng ID trong response tạo mới. Xóa trung tâm có kỹ thuật viên hoặc giao dịch kho liên kết bị từ chối với HTTP 409.
+
+## Biến môi trường và dữ liệu
+
+Sao chép `.env.example` thành `.env` rồi chỉnh các biến khi cần. `APP_PORT`, `FRONTEND_PORT`, `API_PORT`, `API_BASE_URL`, `SMARTCRM_DB_PATH` và `AUTH_TOKEN_SECRET` là các biến cấu hình. Không commit `.env`, thông tin đăng nhập hoặc database runtime.
+
+## Tài liệu
+
+- [Hợp đồng API](docs/api-contract.md)
+- [SRS](docs/srs.md)
+- [Thay đổi thiết kế](docs/thay-doi-thiet-ke.md)
+- [Khai báo AI](docs/ai-disclosure.md)
+- [Nhật ký lỗi](docs/bug-log.md)

@@ -1,0 +1,30 @@
+PS> npm test
+
+> smartcrm-backend@1.0.0 test
+> node --test
+
+✔ validates and normalizes registration usernames (1.2451ms)
+✔ rejects weak passwords and malformed usernames (0.4649ms)
+✔ hashes passwords and verifies only the matching password (104.2902ms)
+✔ creates signed access tokens and rejects tampered tokens (0.9211ms)
+✔ service centers support create, read, update, and delete (56.8384ms)
+✔ service center deletion is blocked when the center has linked records (12.559ms)
+✔ service center input rejects invalid fields and duplicate codes (1.5825ms)
+✔ issue categories support create, read, update, and delete (18.1545ms)
+✔ issue category validation rejects invalid priority and active flag (0.3492ms)
+✔ seeding twice keeps catalog row counts unchanged (13.2844ms)
+✔ accepts an inbound stock mutation with positive integer values (1.246ms)
+✔ rejects a zero quantity at the lower boundary (0.4063ms)
+✔ rejects negative stock quantities (0.1459ms)
+✔ rejects fractional stock quantities (0.1134ms)
+✔ requires a positive warranty ticket ID for an outbound mutation (0.1236ms)
+✔ allows issuing the exact available stock and leaves zero (0.7379ms)
+✔ rejects an issue exceeding stock with available and requested details (0.1658ms)
+ℹ tests 17
+ℹ suites 0
+ℹ pass 17
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 212.0991

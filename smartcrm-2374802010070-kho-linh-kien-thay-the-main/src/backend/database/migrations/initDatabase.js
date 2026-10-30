@@ -1,6 +1,7 @@
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
 const fs = require('fs');
+require('dotenv').config({ path: path.join(__dirname, '../../../.env') });
 
 const DB_PATH = process.env.SMARTCRM_DB_PATH || path.join(__dirname, '../../data/smartcrm.db');
 const DATA_DIR = path.dirname(DB_PATH);
@@ -73,6 +74,14 @@ function initDatabase() {
           FOREIGN KEY (center_id) REFERENCES service_centers(center_id),
           FOREIGN KEY (part_id) REFERENCES parts(part_id)
         );
+
+        CREATE TABLE IF NOT EXISTS users (
+          user_id INTEGER PRIMARY KEY AUTOINCREMENT,
+          username TEXT NOT NULL COLLATE NOCASE UNIQUE,
+          password_hash TEXT NOT NULL,
+          password_salt TEXT NOT NULL,
+          created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+        );
       `;
 
       db.exec(schema, (execErr) => {
@@ -89,3 +98,12 @@ function initDatabase() {
 }
 
 module.exports = { initDatabase, DB_PATH };
+
+if (require.main === module) {
+  initDatabase()
+    .then(() => console.log(`Database initialized at ${DB_PATH}`))
+    .catch((error) => {
+      console.error('Database migration failed:', error);
+      process.exitCode = 1;
+    });
+}

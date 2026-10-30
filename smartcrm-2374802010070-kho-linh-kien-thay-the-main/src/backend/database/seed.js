@@ -1,7 +1,5 @@
 const sqlite3 = require('sqlite3').verbose();
-const path = require('path');
-const fs = require('fs');
-const { DB_PATH } = require('./migrations/initDatabase');
+const { DB_PATH, initDatabase } = require('./migrations/initDatabase');
 
 const seedData = {
   service_centers: [
@@ -44,36 +42,69 @@ const seedData = {
   ]
 };
 
-function seedCatalogData() {
+function openDb() {
   return new Promise((resolve, reject) => {
     const db = new sqlite3.Database(DB_PATH, (err) => {
       if (err) return reject(err);
-
-      const rows = [];
-      Object.entries(seedData).forEach(([table, data]) => {
-        if (!Array.isArray(data) || data.length === 0) return;
-        const columns = Object.keys(data[0]);
-        const placeholders = data.map(() => `(${columns.map(() => '?').join(',')})`).join(',');
-        const values = data.flatMap((row) => columns.map((col) => row[col]));
-        rows.push({ table, columns, placeholders, values });
-      });
-
-      db.serialize(() => {
-        rows.forEach(({ table, columns, placeholders, values }) => {
-          db.run(`INSERT OR IGNORE INTO ${table} (${columns.join(',')}) VALUES ${placeholders}`, values, (insertErr) => {
-            if (insertErr) {
-              reject(insertErr);
-            }
-          });
-        });
-
-        db.close((closeErr) => {
-          if (closeErr) return reject(closeErr);
-          resolve();
-        });
-      });
+      resolve(db);
     });
   });
 }
 
+function run(db, query, values = []) {
+  return new Promise((resolve, reject) => {
+    db.run(query, values, (error) => {
+      if (error) return reject(error);
+      resolve();
+    });
+  });
+}
+
+function close(db) {
+  return new Promise((resolve, reject) => {
+    db.close((error) => {
+      if (error) return reject(error);
+      resolve();
+    });
+  });
+}
+
+async function seedCatalogData() {
+  const db = await openDb();
+  try {
+    await run(db, 'BEGIN IMMEDIATE');
+    for (const [table, data] of Object.entries(seedData)) {
+      if (data.length === 0) continue;
+      const columns = Object.keys(data[0]);
+      const placeholders = data.map(() => `(${columns.map(() => '?').join(',')})`).join(',');
+      const values = data.flatMap((row) => columns.map((column) => row[column]));
+      await run(
+        db,
+        `INSERT OR IGNORE INTO ${table} (${columns.join(',')}) VALUES ${placeholders}`,
+        values
+      );
+    }
+    await run(db, 'COMMIT');
+  } catch (error) {
+    try {
+      await run(db, 'ROLLBACK');
+    } catch (rollbackError) {
+      error.rollbackError = rollbackError;
+    }
+    throw error;
+  } finally {
+    await close(db);
+  }
+}
+
 module.exports = { seedCatalogData };
+
+if (require.main === module) {
+  initDatabase()
+    .then(seedCatalogData)
+    .then(() => console.log(`Catalog data seeded at ${DB_PATH}`))
+    .catch((error) => {
+      console.error('Database seed failed:', error);
+      process.exitCode = 1;
+    });
+}

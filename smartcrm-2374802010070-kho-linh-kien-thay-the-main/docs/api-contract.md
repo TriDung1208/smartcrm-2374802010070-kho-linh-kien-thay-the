@@ -1,193 +1,104 @@
-# SE Track – API Contract: L5 Kho linh kiện thay thế
+# Hợp đồng API – L5 Kho linh kiện thay thế
 
-## 1. Quy ước chung
+## Quy ước
 
-- Base URL: `/api/v1`
-- Content-Type: `application/json`
-- ID dùng kiểu số nguyên hoặc UUID tùy implementation; ví dụ dưới đây dùng integer để dễ đọc.
-- Thời gian dùng ISO-8601.
-- Lỗi trả về JSON thống nhất:
+- Base URL: `/api/v1`; dữ liệu request/response dùng JSON.
+- Tất cả route dưới `/api/v1` cần đăng nhập, ngoại trừ `/auth/register` và `/auth/login`.
+- Gửi token qua `Authorization: Bearer <token>`.
+- Lỗi có dạng `{ "code": "...", "message": "..." }`; lỗi tồn kho có thêm `details`.
+- Các API tra cứu trả trường theo tên cột SQLite (`snake_case`). CRUD nhận tên trường `camelCase` như ví dụ.
 
-```json
-{
-  "code": "INSUFFICIENT_STOCK",
-  "message": "Stock is not sufficient",
-  "details": {}
-}
-```
+## Xác thực
 
-## 2. Tra cứu tồn kho
+`POST /auth/register` và `POST /auth/login` nhận `{ "username": "...", "password": "..." }` và trả token cùng thông tin người dùng. Username có 3–32 ký tự; mật khẩu từ 8–128 ký tự.
 
-### GET `/api/v1/stocks?centerId=1&partId=101`
+## CRUD trung tâm dịch vụ
 
-Response `200 OK`:
-
-```json
-{
-  "centerId": 1,
-  "partId": 101,
-  "partCode": "BAT-IPH-13",
-  "partName": "Battery iPhone 13",
-  "currentStock": 12,
-  "minThreshold": 5,
-  "lowStock": false
-}
-```
-
-## 3. Nhập kho
-
-### POST `/api/v1/stock-receipts`
-
-Request:
-
-```json
-{
-  "centerId": 1,
-  "partId": 101,
-  "quantity": 20,
-  "note": "Nhập lô tháng 10"
-}
-```
-
-Response `201 Created`:
-
-```json
-{
-  "transactionId": 9001,
-  "type": "IN",
-  "centerId": 1,
-  "partId": 101,
-  "quantity": 20,
-  "currentStock": 32
-}
-```
-
-## 4. Xuất linh kiện cho phiếu bảo hành
-
-### POST `/api/v1/stock-issues`
-
-Request:
-
-```json
-{
-  "centerId": 1,
-  "partId": 101,
-  "ticketId": 5001,
-  "quantity": 2,
-  "note": "Cấp linh kiện sửa chữa"
-}
-```
-
-Response `201 Created`:
-
-```json
-{
-  "transactionId": 9002,
-  "type": "OUT",
-  "centerId": 1,
-  "partId": 101,
-  "ticketId": 5001,
-  "quantity": 2,
-  "currentStock": 10
-}
-```
-
-Response khi không đủ tồn – `409 Conflict`:
-
-```json
-{
-  "code": "INSUFFICIENT_STOCK",
-  "message": "Available stock is 1 but requested quantity is 2",
-  "details": {
-    "available": 1,
-    "requested": 2
-  }
-}
-```
-
-## 5. Xem chi tiết linh kiện
-
-### GET `/api/v1/parts/101`
-
-Response `200 OK`:
-
-```json
-{
-  "id": 101,
-  "code": "BAT-IPH-13",
-  "name": "Battery iPhone 13",
-  "unit": "piece",
-  "minThreshold": 5,
-  "active": true
-}
-```
-
-## 6. Lịch sử giao dịch
-
-### GET `/api/v1/stock-transactions?centerId=1&type=OUT&from=2026-10-01&to=2026-10-02`
-
-Response `200 OK`:
-
-```json
-{
-  "items": [
-    {
-      "transactionId": 9002,
-      "type": "OUT",
-      "partId": 101,
-      "ticketId": 5001,
-      "quantity": 2,
-      "createdAt": "2026-10-02T10:30:00+07:00"
-    }
-  ],
-  "total": 1
-}
-```
-
-## 7. Cảnh báo tồn thấp
-
-### GET `/api/v1/stock-alerts?centerId=1`
-
-Response `200 OK`:
-
-```json
-{
-  "items": [
-    {
-      "partId": 101,
-      "partCode": "BAT-IPH-13",
-      "currentStock": 3,
-      "minThreshold": 5,
-      "status": "LOW_STOCK"
-    }
-  ]
-}
-```
-
-## 8. HTTP Status Code
-
-| Status | Ý nghĩa |
-|---|---|
-| 200 | Truy vấn thành công |
-| 201 | Tạo giao dịch thành công |
-| 400 | Request sai định dạng/validation |
-| 404 | Không tìm thấy linh kiện, trung tâm hoặc phiếu |
-| 409 | Xung đột nghiệp vụ, ví dụ không đủ tồn |
-| 500 | Lỗi hệ thống ngoài dự kiến |
-
-## 9. Bảng validation
-
-| Field | Rule | Error |
+| Method | Route | Kết quả |
 |---|---|---|
-| `centerId` | Bắt buộc, số nguyên dương | `INVALID_CENTER_ID` |
-| `partId` | Bắt buộc, số nguyên dương | `INVALID_PART_ID` |
-| `ticketId` | Bắt buộc đối với xuất kho | `INVALID_TICKET_ID` |
-| `quantity` | Bắt buộc, integer > 0 | `INVALID_QUANTITY` |
-| `type` | Chỉ `IN` hoặc `OUT` | `INVALID_TRANSACTION_TYPE` |
-| `from/to` | ISO date hợp lệ; from <= to | `INVALID_DATE_RANGE` |
-| Xuất kho | quantity <= currentStock | `INSUFFICIENT_STOCK` |
-| Phiếu bảo hành | Phải tồn tại và hợp lệ | `INVALID_TICKET` |
+| GET | `/service-centers` | Danh sách trung tâm |
+| GET | `/service-centers/:centerId` | Chi tiết trung tâm |
+| POST | `/service-centers` | Tạo, trả `201` |
+| PUT | `/service-centers/:centerId` | Cập nhật đầy đủ trường, trả `200` |
+| DELETE | `/service-centers/:centerId` | Xóa, trả `204` |
 
-## 10. Quy tắc transaction
+POST/PUT nhận:
 
-Đối với POST `/stock-issues`, hệ thống phải thực hiện kiểm tra tồn và cập nhật tồn trong transaction. Nếu tạo lịch sử giao dịch hoặc cập nhật tồn thất bại thì rollback toàn bộ thao tác, tránh tình trạng đã tạo giao dịch nhưng tồn chưa giảm hoặc ngược lại.
+```json
+{
+  "centerCode": "TT99",
+  "centerName": "TTBH Demo",
+  "city": "Cần Thơ"
+}
+```
+
+`centerCode`, `centerName`, `city` là chuỗi không rỗng, tối đa 100 ký tự. Không cho xóa trung tâm còn kỹ thuật viên, tồn kho hoặc giao dịch; API trả `409 SERVICE_CENTER_IN_USE`. Mã trung tâm trùng trả `409 SERVICE_CENTER_CODE_TAKEN`.
+
+## CRUD nhóm lỗi
+
+| Method | Route | Kết quả |
+|---|---|---|
+| GET | `/issue-categories` | Danh sách nhóm lỗi |
+| GET | `/issue-categories/:categoryId` | Chi tiết nhóm lỗi |
+| POST | `/issue-categories` | Tạo, trả `201` |
+| PUT | `/issue-categories/:categoryId` | Cập nhật đầy đủ trường, trả `200` |
+| DELETE | `/issue-categories/:categoryId` | Xóa, trả `204` |
+
+POST/PUT nhận:
+
+```json
+{
+  "categoryName": "LOI_KET_NOI",
+  "defaultPriority": "CAO",
+  "isActive": true
+}
+```
+
+`categoryName` không rỗng (tối đa 80 ký tự); `defaultPriority` là `THAP`, `TRUNG_BINH` hoặc `CAO`; `isActive` phải là boolean.
+
+## Kho linh kiện
+
+### Tra cứu tồn
+
+`GET /stocks?centerId=1` trả danh sách tồn theo trung tâm. Thêm `partId` để tra cứu một bản ghi:
+
+```json
+{
+  "center_id": 1,
+  "part_id": 1,
+  "part_code": "MH-SS-01",
+  "part_name": "Màn hình Samsung loại 1",
+  "unit_price": 2200000,
+  "current_stock": 16,
+  "min_threshold": 8,
+  "low_stock": 0
+}
+```
+
+### Nhập kho
+
+`POST /stock-receipts` nhận `{ "centerId": 1, "partId": 1, "quantity": 2, "note": "Nhập lô" }`. Trả `201` với mã giao dịch và tồn mới. `quantity` phải là số nguyên dương.
+
+### Xuất kho
+
+`POST /stock-issues` nhận `{ "centerId": 1, "partId": 1, "ticketId": 5001, "quantity": 1 }`. Xuất kho kiểm tra tồn và cập nhật tồn/lịch sử trong một transaction. Thiếu tồn trả `409 INSUFFICIENT_STOCK`; mã phiếu phải là số nguyên dương.
+
+**Giới hạn hiện tại:** `ticketId` chỉ được lưu làm mã tham chiếu; hệ thống chưa truy vấn hay xác thực phiếu ở phân hệ bảo hành.
+
+### Cảnh báo và lịch sử
+
+- `GET /stock-alerts?centerId=1`: linh kiện có số lượng nhỏ hơn ngưỡng tối thiểu.
+- `GET /stock-transactions?centerId=1&type=OUT`: lịch sử lọc theo trung tâm và/hoặc `IN`, `OUT`. Chưa hỗ trợ bộ lọc thời gian.
+
+## Mã HTTP và lỗi
+
+| HTTP | Ý nghĩa |
+|---|---|
+| 200 | Đọc hoặc cập nhật thành công |
+| 201 | Tạo thành công |
+| 204 | Xóa thành công |
+| 400 | Dữ liệu hoặc ID không hợp lệ |
+| 401 | Thiếu hoặc sai token |
+| 404 | Không tìm thấy bản ghi |
+| 409 | Trùng mã, bản ghi đang được tham chiếu hoặc không đủ tồn |
+| 500 | Lỗi ngoài dự kiến |

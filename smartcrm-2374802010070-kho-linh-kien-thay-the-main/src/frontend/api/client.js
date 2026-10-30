@@ -9,8 +9,8 @@ export class ApiError extends Error {
   }
 }
 
-export async function request(path, { method = 'GET', body } = {}) {
-  const token = window.localStorage.getItem('token');
+export async function request(path, { method = 'GET', body, authenticated = true } = {}) {
+  const token = authenticated ? window.localStorage.getItem('token') : null;
   const headers = {};
 
   if (body !== undefined) headers['Content-Type'] = 'application/json';
@@ -23,13 +23,8 @@ export async function request(path, { method = 'GET', body } = {}) {
       headers,
       body: body === undefined ? undefined : JSON.stringify(body)
     });
-  } catch (error) {
+  } catch {
     throw new ApiError('Không kết nối được máy chủ. Hãy kiểm tra backend và thử lại.', 0);
-  }
-
-  if (response.status === 401) {
-    window.localStorage.removeItem('token');
-    throw new ApiError('Phiên đăng nhập không hợp lệ hoặc đã hết hạn.', 401);
   }
 
   const contentType = response.headers.get('content-type') || '';
@@ -38,6 +33,12 @@ export async function request(path, { method = 'GET', body } = {}) {
     : contentType.includes('application/json')
       ? await response.json()
       : null;
+
+  if (response.status === 401 && token) {
+    window.localStorage.removeItem('token');
+    window.localStorage.removeItem('username');
+    window.dispatchEvent(new Event('smartcrm:unauthorized'));
+  }
 
   if (!response.ok) {
     throw new ApiError(data?.message || `Yêu cầu thất bại (${response.status}).`, response.status, data?.code);
