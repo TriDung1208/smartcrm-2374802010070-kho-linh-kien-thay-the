@@ -1,0 +1,20 @@
+# Secrets
+/.env
+/.env.*
+!/.env.example
+/smartcrm-2374802010070-kho-linh-kien-thay-the-main/.env
+/smartcrm-2374802010070-kho-linh-kien-thay-the-main/.env.*
+!/smartcrm-2374802010070-kho-linh-kien-thay-the-main/.env.example
+!/smartcrm-2374802010070-kho-linh-kien-thay-the-main/.env.docker.example
+
+# Dependencies, runtime databases and local tooling
+/node_modules/
+/smartcrm-2374802010070-kho-linh-kien-thay-the-main/node_modules/
+/smartcrm-2374802010070-kho-linh-kien-thay-the-main/src/backend/node_modules/
+/smartcrm-2374802010070-kho-linh-kien-thay-the-main/src/backend/data/
+/smartcrm-2374802010070-kho-linh-kien-thay-the-main/**/*.db
+/smartcrm-2374802010070-kho-linh-kien-thay-the-main/**/*.db-*
+/.vscode/
+/.vs/
+/smartcrm-2374802010070-kho-linh-kien-thay-the-main/.vscode/
+/smartcrm-2374802010070-kho-linh-kien-thay-the-main/.vs/

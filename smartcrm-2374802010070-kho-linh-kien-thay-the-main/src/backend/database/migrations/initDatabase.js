@@ -80,6 +80,7 @@ function initDatabase() {
           username TEXT NOT NULL COLLATE NOCASE UNIQUE,
           password_hash TEXT NOT NULL,
           password_salt TEXT NOT NULL,
+          role TEXT NOT NULL DEFAULT 'WAREHOUSE' CHECK (role IN ('ADMIN', 'WAREHOUSE')),
           created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
         );
       `;
@@ -90,8 +91,29 @@ function initDatabase() {
           reject(execErr);
           return;
         }
-        db.close();
-        resolve();
+
+        db.all('PRAGMA table_info(users)', (pragmaError, columns) => {
+          if (pragmaError) {
+            return db.close(() => reject(pragmaError));
+          }
+          if (columns.some((column) => column.name === 'role')) {
+            return db.close((closeError) => {
+              if (closeError) return reject(closeError);
+              resolve();
+            });
+          }
+
+          db.run(
+            "ALTER TABLE users ADD COLUMN role TEXT NOT NULL DEFAULT 'WAREHOUSE' CHECK (role IN ('ADMIN', 'WAREHOUSE'))",
+            (migrationError) => {
+              db.close((closeError) => {
+                if (migrationError) return reject(migrationError);
+                if (closeError) return reject(closeError);
+                resolve();
+              });
+            }
+          );
+        });
       });
     });
   });

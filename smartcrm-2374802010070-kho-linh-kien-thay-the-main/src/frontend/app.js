@@ -47,9 +47,10 @@ function clearNotice() {
   notice.textContent = '';
 }
 
-function setAuthenticatedUI(username) {
+function setAuthenticatedUI(username, role = 'WAREHOUSE') {
   document.body.classList.remove('auth-screen');
-  document.querySelector('#session-user').textContent = username ? `Xin chào, ${username}` : 'Tài khoản';
+  const roleLabel = role === 'ADMIN' ? 'Quản trị viên' : 'Nhân viên kho';
+  document.querySelector('#session-user').textContent = username ? `Xin chào, ${username} · ${roleLabel}` : 'Tài khoản';
   document.querySelector('#logout-button').hidden = false;
 }
 
@@ -71,11 +72,13 @@ function showLoginScreen(message = '') {
   const title = element('h1', 'auth-title');
   const subtitle = element('p', 'auth-subtitle');
   const form = element('form', 'auth-form');
+  form.autocomplete = 'on';
   const usernameLabel = element('label', 'field');
   usernameLabel.append(element('span', 'field-label', 'Tên đăng nhập'));
   const usernameInput = element('input', 'text-control');
   usernameInput.name = 'username';
   usernameInput.autocomplete = 'username';
+  usernameInput.value = window.localStorage.getItem('rememberedUsername') || '';
   usernameInput.minLength = 3;
   usernameInput.maxLength = 32;
   usernameInput.required = true;
@@ -92,6 +95,11 @@ function showLoginScreen(message = '') {
   passwordInput.required = true;
   passwordLabel.append(passwordInput);
 
+  const authHint = element(
+    'p',
+    'auth-hint',
+    'Tài khoản đăng ký mới có quyền Nhân viên kho. Quản trị viên được cấp quyền riêng bởi người quản trị hệ thống.'
+  );
   const feedback = element('p', 'auth-feedback');
   const submit = element('button', 'button button-primary auth-submit');
   submit.type = 'submit';
@@ -113,7 +121,7 @@ function showLoginScreen(message = '') {
     toggle.textContent = isRegister ? 'Đã có tài khoản? Đăng nhập' : 'Chưa có tài khoản? Đăng ký';
     feedback.textContent = message;
     feedback.classList.toggle('is-error', Boolean(message));
-    form.replaceChildren(usernameLabel, passwordLabel, feedback, submit, toggle);
+    form.replaceChildren(usernameLabel, passwordLabel, authHint, feedback, submit, toggle);
   }
 
   form.addEventListener('submit', async (event) => {
@@ -126,7 +134,9 @@ function showLoginScreen(message = '') {
       const result = await authenticate(usernameInput.value, passwordInput.value);
       window.localStorage.setItem('token', result.token);
       window.localStorage.setItem('username', result.user.username);
-      setAuthenticatedUI(result.user.username);
+      window.localStorage.setItem('role', result.user.role);
+      window.localStorage.setItem('rememberedUsername', result.user.username);
+      setAuthenticatedUI(result.user.username, result.user.role);
       openInventory();
     } catch (error) {
       message = error.message;
@@ -857,6 +867,7 @@ document.querySelectorAll('[data-view]').forEach((item) => {
 document.querySelector('#logout-button').addEventListener('click', () => {
   window.localStorage.removeItem('token');
   window.localStorage.removeItem('username');
+  window.localStorage.removeItem('role');
   showLoginScreen();
 });
 
@@ -868,7 +879,7 @@ window.addEventListener('unhandledrejection', (event) => {
 
 const existingToken = window.localStorage.getItem('token');
 if (existingToken) {
-  setAuthenticatedUI(window.localStorage.getItem('username'));
+  setAuthenticatedUI(window.localStorage.getItem('username'), window.localStorage.getItem('role'));
   openInventory();
 } else {
   showLoginScreen();

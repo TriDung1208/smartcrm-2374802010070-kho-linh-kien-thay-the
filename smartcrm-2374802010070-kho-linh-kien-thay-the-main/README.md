@@ -1,7 +1,7 @@
-# Smart CRM Mekong Mobile – L5 Kho linh kiện thay thế
+# Smart CRM Mekong Mobile – BT3: L5 Kho linh kiện thay thế
 
 **Bài toán tổng thể:** Hệ thống tiếp nhận và phân loại yêu cầu bảo hành cho Mekong Mobile.
-**Phạm vi BT2:** phân hệ L5 – quản lý kho linh kiện thay thế.
+**Bài tập:** BT3, tiếp nối phân hệ L5 – quản lý kho linh kiện thay thế.
 **Track:** SE · **Sinh viên:** Trần Trí Dũng · **MSSV:** 2374802010070
 
 Phân hệ hỗ trợ tra cứu tồn kho theo trung tâm, nhập kho, xuất linh kiện có kiểm tra tồn, cảnh báo dưới ngưỡng và xem lịch sử giao dịch. Mã phiếu bảo hành được lưu làm tham chiếu khi xuất; phiên bản này chưa kết nối hoặc xác minh phiếu với một phân hệ bảo hành.
@@ -10,12 +10,35 @@ Phân hệ hỗ trợ tra cứu tồn kho theo trung tâm, nhập kho, xuất li
 
 | Thành phần | Phiên bản |
 |---|---|
-| Node.js | 18.x hoặc 20.x |
+| Node.js | 22.x hoặc 24.x (Docker dùng 24.x) |
 | npm | Đi kèm Node.js (npm 9 trở lên) |
 | Cơ sở dữ liệu | SQLite, tạo tự động khi migrate |
 | Hệ điều hành | Windows 10/11, Ubuntu hoặc macOS |
 
 `src/backend/package-lock.json` khóa phiên bản dependency để `npm ci` cài đúng bộ thư viện.
+
+## Chạy bằng Docker
+
+Cần Docker Desktop hoặc Docker Engine có Docker Compose. Chạy từ thư mục dự án (thư mục chứa `Dockerfile`):
+
+```powershell
+Copy-Item .env.docker.example .env
+$secret = node -e "process.stdout.write(require('crypto').randomBytes(32).toString('hex'))"
+Set-Content -Path .env -Value "AUTH_TOKEN_SECRET=$secret" -Encoding ASCII
+docker compose up --build -d
+docker compose ps
+Invoke-RestMethod http://localhost:3000/health
+```
+
+Mở <http://localhost:3000>. Compose lưu SQLite trong volume `smartcrm_data`, nên dữ liệu vẫn còn khi container được tạo lại. Dừng ứng dụng bằng `docker compose down`; không dùng `-v` nếu muốn giữ dữ liệu. Không commit `.env`.
+
+Để cấp quyền quản trị cho tài khoản đã đăng ký, chạy:
+
+```powershell
+docker compose run --rm smartcrm npm run set-role -- demo.user ADMIN
+```
+
+Build image thủ công: `docker build -t smartcrm-stock:local .`. Container chạy Node.js 24, người dùng không đặc quyền và có health check tại `/health`.
 
 ## Cài đặt và chạy
 
@@ -61,7 +84,20 @@ Các màn hình gọi API thật:
 2. **Xuất linh kiện:** kiểm tra dữ liệu, tồn khả dụng và mã phiếu tham chiếu.
 3. **Nhập kho & lịch sử:** ghi nhận nhập và tra cứu giao dịch.
 
-Hai thực thể có API CRUD đầy đủ là **trung tâm dịch vụ** và **nhóm lỗi**. Các API nghiệp vụ cần đăng nhập; đăng ký tài khoản dùng cho demo được mở công khai. Bản hiện tại chưa phân quyền theo vai trò.
+Hai thực thể có API CRUD đầy đủ là **trung tâm dịch vụ** và **nhóm lỗi**. Giao diện có đăng nhập/đăng ký; API nghiệp vụ yêu cầu Bearer token. Vai trò được kiểm tra ở backend:
+
+| Vai trò | Quyền |
+|---|---|
+| `WAREHOUSE` | Xem trung tâm/nhóm lỗi, xem tồn/lịch sử, nhập và xuất linh kiện |
+| `ADMIN` | Toàn quyền của `WAREHOUSE`, quản lý trung tâm/nhóm lỗi và xem kỹ thuật viên |
+
+Tài khoản đăng ký mới mặc định là `WAREHOUSE`. Chỉ quản trị viên máy chủ được thay đổi vai trò qua CLI; sau khi tạo tài khoản đăng ký như bình thường, chạy từ `src/backend`:
+
+```powershell
+npm run set-role -- demo.user ADMIN
+```
+
+Có thể đổi lại thành `WAREHOUSE` bằng cùng lệnh. Quyền được đọc từ SQLite trên mỗi request; đăng xuất/đăng nhập lại để giao diện cập nhật nhãn vai trò.
 
 ## Kiểm thử
 
@@ -114,3 +150,7 @@ Sao chép `.env.example` thành `.env` rồi chỉnh các biến khi cần. `APP
 - [Thay đổi thiết kế](docs/thay-doi-thiet-ke.md)
 - [Khai báo AI](docs/ai-disclosure.md)
 - [Nhật ký lỗi](docs/bug-log.md)
+- [Test Plan](docs/test-plan.md)
+- [Test Report](docs/test-report.md)
+- [Ảnh chụp minh chứng](docs/screenshots/)
+- [Báo cáo BT3 (DOCX)](docs/BT3_2374802010070_TranTriDung.docx)

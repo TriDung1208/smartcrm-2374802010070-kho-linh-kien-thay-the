@@ -37,6 +37,7 @@ export async function request(path, { method = 'GET', body, authenticated = true
   if (response.status === 401 && token) {
     window.localStorage.removeItem('token');
     window.localStorage.removeItem('username');
+    window.localStorage.removeItem('role');
     window.dispatchEvent(new Event('smartcrm:unauthorized'));
   }
 

@@ -12,6 +12,7 @@ const { initDatabase } = require('../../../database/migrations/initDatabase');
 const { seedCatalogData } = require('../../../database/seed');
 const serviceCenters = require('./serviceCenterService');
 const issueCategories = require('../issueCategories/issueCategoryService');
+const { getUserByUsername, setUserRole, createUser } = require('../auth/authRepository');
 
 function runSql(query, params = []) {
   return new Promise((resolve, reject) => {
@@ -144,6 +145,20 @@ test('issue category validation rejects invalid priority and active flag', async
     }),
     { code: 'INVALID_CATEGORY', statusCode: 400 }
   );
+});
+
+test('new accounts default to WAREHOUSE and roles can be managed locally', async () => {
+  const created = await createUser({
+    username: 'role-test',
+    passwordHash: 'test-hash',
+    passwordSalt: 'test-salt'
+  });
+  assert.equal(created.role, 'WAREHOUSE');
+
+  assert.equal(await setUserRole('role-test', 'ADMIN'), true);
+  assert.equal((await getUserByUsername('role-test')).role, 'ADMIN');
+  assert.equal(await setUserRole('role-test', 'WAREHOUSE'), true);
+  assert.equal((await getUserByUsername('role-test')).role, 'WAREHOUSE');
 });
 
 test('seeding twice keeps catalog row counts unchanged', async () => {

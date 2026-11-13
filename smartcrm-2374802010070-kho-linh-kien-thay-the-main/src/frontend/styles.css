@@ -227,6 +227,7 @@ button.metric-card:hover { border-color: #b8caed; background: #fbfcff; }
 .auth-subtitle { margin: 8px 0 24px; color: var(--muted); font-size: 12px; line-height: 1.6; }
 .auth-form { display: grid; gap: 16px; }
 .auth-form .text-control { min-height: 44px; font-size: 13px; }
+.auth-hint { margin: -8px 0 0; color: #667085; font-size: 11px; line-height: 1.5; }
 .auth-feedback { min-height: 0; margin: -3px 0 0; color: #667085; font-size: 11px; line-height: 1.5; }
 .auth-feedback.is-error { color: #b42318; }
 .auth-submit { min-height: 44px; margin-top: 3px; font-size: 13px; }

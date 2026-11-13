@@ -1,4 +1,5 @@
 const express = require('express');
+const { requireRole } = require('../auth/authorization');
 const {
   getAllServiceCenters,
   getServiceCenterById,
@@ -33,7 +34,7 @@ router.get('/:centerId', async (req, res) => {
   }
 });
 
-router.post('/', async (req, res) => {
+router.post('/', requireRole('ADMIN'), async (req, res) => {
   try {
     const center = await createServiceCenter(req.body);
     return res.status(201).json(center);
@@ -42,7 +43,7 @@ router.post('/', async (req, res) => {
   }
 });
 
-router.put('/:centerId', async (req, res) => {
+router.put('/:centerId', requireRole('ADMIN'), async (req, res) => {
   try {
     const center = await updateServiceCenter(req.params.centerId, req.body);
     return res.json(center);
@@ -51,7 +52,7 @@ router.put('/:centerId', async (req, res) => {
   }
 });
 
-router.delete('/:centerId', async (req, res) => {
+router.delete('/:centerId', requireRole('ADMIN'), async (req, res) => {
   try {
     await deleteServiceCenter(req.params.centerId);
     return res.status(204).end();

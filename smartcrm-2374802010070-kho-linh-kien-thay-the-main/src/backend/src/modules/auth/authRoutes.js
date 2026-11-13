@@ -16,7 +16,7 @@ router.post('/register', async (req, res) => {
     const user = await register(req.body || {});
     return res.status(201).json({
       token: createAccessToken({ user_id: user.userId, username: user.username }),
-      user: { id: user.userId, username: user.username }
+      user: { id: user.userId, username: user.username, role: user.role }
     });
   } catch (error) {
     return sendError(res, error);
@@ -28,7 +28,7 @@ router.post('/login', async (req, res) => {
     const user = await login(req.body || {});
     return res.json({
       token: createAccessToken(user),
-      user: { id: user.user_id, username: user.username }
+      user: { id: user.user_id, username: user.username, role: user.role }
     });
   } catch (error) {
     return sendError(res, error);

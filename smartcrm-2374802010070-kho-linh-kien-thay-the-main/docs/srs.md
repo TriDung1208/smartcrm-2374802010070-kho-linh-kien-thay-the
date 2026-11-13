@@ -12,8 +12,11 @@ Tài liệu này đặc tả yêu cầu phần mềm cho luồng **L5 – Kho li
 
 ### 1.3 Vai trò
 - **Nhân viên kho:** thực hiện nhập, xuất và tra cứu tồn.
-- **Quản lý trung tâm:** xem tồn, lịch sử và theo dõi cảnh báo.
+- **Quản trị viên (ADMIN):** quản lý trung tâm/nhóm lỗi, xem kỹ thuật viên và sử dụng các chức năng kho.
+- **Nhân viên kho (WAREHOUSE):** xem danh mục, tra cứu tồn/lịch sử và thực hiện nhập/xuất kho.
 - **Hệ thống:** kiểm tra quy tắc nghiệp vụ, cập nhật tồn và phát cảnh báo.
+
+Tài khoản đăng ký mới có vai trò `WAREHOUSE`; quản trị viên máy chủ cấp hoặc thu hồi vai trò qua CLI. Backend xác thực vai trò cho từng request.
 
 ---
 
@@ -132,6 +135,7 @@ Tài liệu này đặc tả yêu cầu phần mềm cho luồng **L5 – Kho li
 | NFR03 | Hệ thống phải ngăn tồn kho âm trong các giao dịch đồng thời. |
 | NFR04 | Dữ liệu giao dịch phải lưu được thời gian, loại giao dịch, số lượng và tác nhân thực hiện. |
 | NFR05 | API phải kiểm tra dữ liệu đầu vào ở server, không chỉ dựa vào giao diện. |
+| NFR06 | Backend phải xác thực token và kiểm tra quyền theo vai trò; tài khoản kho không được sửa danh mục quản trị. |
 
 ---
 

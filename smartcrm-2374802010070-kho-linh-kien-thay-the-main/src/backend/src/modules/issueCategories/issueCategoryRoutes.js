@@ -1,4 +1,5 @@
 const express = require('express');
+const { requireRole } = require('../auth/authorization');
 const {
   getAllIssueCategories,
   getIssueCategoryById,
@@ -33,7 +34,7 @@ router.get('/:categoryId', async (req, res) => {
   }
 });
 
-router.post('/', async (req, res) => {
+router.post('/', requireRole('ADMIN'), async (req, res) => {
   try {
     const category = await createIssueCategory(req.body);
     return res.status(201).json(category);
@@ -42,7 +43,7 @@ router.post('/', async (req, res) => {
   }
 });
 
-router.put('/:categoryId', async (req, res) => {
+router.put('/:categoryId', requireRole('ADMIN'), async (req, res) => {
   try {
     const category = await updateIssueCategory(req.params.categoryId, req.body);
     return res.json(category);
@@ -51,7 +52,7 @@ router.put('/:categoryId', async (req, res) => {
   }
 });
 
-router.delete('/:categoryId', async (req, res) => {
+router.delete('/:categoryId', requireRole('ADMIN'), async (req, res) => {
   try {
     await deleteIssueCategory(req.params.categoryId);
     return res.status(204).end();

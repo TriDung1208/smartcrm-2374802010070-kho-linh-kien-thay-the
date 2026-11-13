@@ -1,6 +1,9 @@
 const express = require('express');
+const { requireRole } = require('../auth/authorization');
 const { getAllTechnicians, getTechnicianById, getTechniciansByCenter } = require('./technicianService');
 const router = express.Router();
+
+router.use(requireRole('ADMIN'));
 
 router.get('/', async (req, res) => {
   try {

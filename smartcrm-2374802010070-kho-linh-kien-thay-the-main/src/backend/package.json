@@ -9,6 +9,7 @@
     "frontend": "node ../frontend/server.js",
     "migrate": "node database/migrations/initDatabase.js",
     "seed": "node database/seed.js",
+    "set-role": "node database/setUserRole.js",
     "test": "node --test"
   },
   "keywords": [

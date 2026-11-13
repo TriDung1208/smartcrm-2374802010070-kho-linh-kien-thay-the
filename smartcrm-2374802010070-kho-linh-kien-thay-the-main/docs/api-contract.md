@@ -10,7 +10,13 @@
 
 ## Xác thực
 
-`POST /auth/register` và `POST /auth/login` nhận `{ "username": "...", "password": "..." }` và trả token cùng thông tin người dùng. Username có 3–32 ký tự; mật khẩu từ 8–128 ký tự.
+`POST /auth/register` và `POST /auth/login` nhận `{ "username": "...", "password": "..." }` và trả token cùng thông tin người dùng, gồm vai trò. Username có 3–32 ký tự; mật khẩu từ 8–128 ký tự. Đăng ký mới luôn có vai trò `WAREHOUSE`; tài khoản ADMIN chỉ được cấp từ CLI trên máy chủ:
+
+```powershell
+npm run set-role -- demo.user ADMIN
+```
+
+`WAREHOUSE` được xem trung tâm/nhóm lỗi, đọc tồn và lịch sử, nhập/xuất kho. `ADMIN` có thêm quyền ghi/xóa trung tâm, nhóm lỗi và xem danh sách kỹ thuật viên. Thiếu vai trò phù hợp trả `403 FORBIDDEN`; vai trò được kiểm tra từ database trên mỗi request.
 
 ## CRUD trung tâm dịch vụ
 
@@ -21,6 +27,8 @@
 | POST | `/service-centers` | Tạo, trả `201` |
 | PUT | `/service-centers/:centerId` | Cập nhật đầy đủ trường, trả `200` |
 | DELETE | `/service-centers/:centerId` | Xóa, trả `204` |
+
+Các request GET yêu cầu đăng nhập; POST/PUT/DELETE chỉ dành cho `ADMIN`.
 
 POST/PUT nhận:
 
@@ -44,6 +52,8 @@ POST/PUT nhận:
 | PUT | `/issue-categories/:categoryId` | Cập nhật đầy đủ trường, trả `200` |
 | DELETE | `/issue-categories/:categoryId` | Xóa, trả `204` |
 
+Các request GET yêu cầu đăng nhập; POST/PUT/DELETE chỉ dành cho `ADMIN`.
+
 POST/PUT nhận:
 
 ```json
@@ -60,7 +70,7 @@ POST/PUT nhận:
 
 ### Tra cứu tồn
 
-`GET /stocks?centerId=1` trả danh sách tồn theo trung tâm. Thêm `partId` để tra cứu một bản ghi:
+`GET /stocks?centerId=1` trả danh sách tồn theo trung tâm. Thêm `partId` để tra cứu một bản ghi. ID truy vấn phải là số nguyên dương; ID sai trả `400 INVALID_CENTER_ID` hoặc `400 INVALID_PART_ID`.
 
 ```json
 {
@@ -77,7 +87,7 @@ POST/PUT nhận:
 
 ### Nhập kho
 
-`POST /stock-receipts` nhận `{ "centerId": 1, "partId": 1, "quantity": 2, "note": "Nhập lô" }`. Trả `201` với mã giao dịch và tồn mới. `quantity` phải là số nguyên dương.
+`POST /stock-receipts` nhận `{ "centerId": 1, "partId": 1, "quantity": 2, "note": "Nhập lô" }`. Trả `201` với mã giao dịch và tồn mới. `quantity` phải là số nguyên dương; tổng tồn sau khi nhập không được vượt giới hạn số nguyên an toàn của JavaScript. Nếu vượt, API trả `409 STOCK_LIMIT_EXCEEDED`.
 
 ### Xuất kho
 
@@ -88,7 +98,7 @@ POST/PUT nhận:
 ### Cảnh báo và lịch sử
 
 - `GET /stock-alerts?centerId=1`: linh kiện có số lượng nhỏ hơn ngưỡng tối thiểu.
-- `GET /stock-transactions?centerId=1&type=OUT`: lịch sử lọc theo trung tâm và/hoặc `IN`, `OUT`. Chưa hỗ trợ bộ lọc thời gian.
+- `GET /stock-transactions?centerId=1&type=OUT`: lịch sử lọc theo trung tâm và/hoặc `IN`, `OUT`. ID trung tâm không hợp lệ trả `400 INVALID_CENTER_ID`; `type` ngoài `IN`/`OUT` trả `400 INVALID_TRANSACTION_TYPE`. Chưa hỗ trợ bộ lọc thời gian.
 
 ## Mã HTTP và lỗi
 
@@ -99,6 +109,7 @@ POST/PUT nhận:
 | 204 | Xóa thành công |
 | 400 | Dữ liệu hoặc ID không hợp lệ |
 | 401 | Thiếu hoặc sai token |
+| 403 | Đã đăng nhập nhưng vai trò không đủ quyền |
 | 404 | Không tìm thấy bản ghi |
 | 409 | Trùng mã, bản ghi đang được tham chiếu hoặc không đủ tồn |
 | 500 | Lỗi ngoài dự kiến |
