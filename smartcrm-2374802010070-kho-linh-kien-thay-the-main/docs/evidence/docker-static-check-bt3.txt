@@ -1,0 +1,12 @@
+﻿BT3 Docker static validation
+Date: 2026-11-13
+Docker CLI/Engine: unavailable in development environment; docker compose build/up not executed.
+PASS: all Dockerfile COPY source paths exist.
+PASS: Node 24 runtime image declared.
+PASS: runtime runs as non-root node user.
+PASS: image and Compose define /health checks.
+PASS: SQLite database uses persistent smartcrm_data volume.
+PASS: Compose requires AUTH_TOKEN_SECRET.
+PASS: image starts backend server.js.
+PASS: all six version-controlled CSV seed files are included in the Docker build source.
+Unverified: image build, container startup, browser UI, health status inside Docker.

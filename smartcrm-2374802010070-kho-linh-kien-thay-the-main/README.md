@@ -154,3 +154,4 @@ Sao chép `.env.example` thành `.env` rồi chỉnh các biến khi cần. `APP
 - [Test Report](docs/test-report.md)
 - [Ảnh chụp minh chứng](docs/screenshots/)
 - [Báo cáo BT3 (DOCX)](docs/BT3_2374802010070_TranTriDung.docx)
+- [Báo cáo BT3 (PDF để nộp)](docs/BT3_2374802010070_TranTriDung.pdf)

@@ -21,5 +21,6 @@ Yêu cầu Docker Desktop/Engine và Docker Compose. Chi tiết chạy, kiểm t
 ## Báo cáo
 
 - [Báo cáo BT3 (DOCX)](./smartcrm-2374802010070-kho-linh-kien-thay-the-main/docs/BT3_2374802010070_TranTriDung.docx)
+- [Báo cáo BT3 (PDF để nộp)](./smartcrm-2374802010070-kho-linh-kien-thay-the-main/docs/BT3_2374802010070_TranTriDung.pdf)
 - [Test Plan](./smartcrm-2374802010070-kho-linh-kien-thay-the-main/docs/test-plan.md)
 - [Test Report](./smartcrm-2374802010070-kho-linh-kien-thay-the-main/docs/test-report.md)

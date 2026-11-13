@@ -1,0 +1,39 @@
+
+> smartcrm-backend@1.0.0 test
+> node --test
+
+✔ validates and normalizes registration usernames (2.3705ms)
+✔ rejects weak passwords and malformed usernames (0.5988ms)
+✔ hashes passwords and verifies only the matching password (114.8096ms)
+✔ creates signed access tokens and rejects tampered tokens (1.4401ms)
+✔ role-protected APIs allow warehouse reads and require ADMIN for management (119.4044ms)
+✔ public registration and login return the server-assigned warehouse role (97.3543ms)
+✔ allows an authenticated user with an explicitly permitted role (0.9925ms)
+✔ denies a role not allowed to manage protected resources (0.2136ms)
+✔ denies requests without an authenticated user (0.206ms)
+✔ migration adds a default warehouse role to existing user tables (72.9778ms)
+✔ service centers support create, read, update, and delete (410.1942ms)
+✔ service center deletion is blocked when the center has linked records (14.4495ms)
+✔ service center input rejects invalid fields and duplicate codes (1.8361ms)
+✔ issue categories support create, read, update, and delete (20.5304ms)
+✔ issue category validation rejects invalid priority and active flag (0.6115ms)
+✔ new accounts default to WAREHOUSE and roles can be managed locally (19.4791ms)
+✔ seeding twice keeps catalog row counts unchanged (290.5478ms)
+✔ accepts an inbound stock mutation with positive integer values (1.5813ms)
+✔ rejects a zero quantity at the lower boundary (0.648ms)
+✔ rejects negative stock quantities (0.1578ms)
+✔ rejects fractional stock quantities (0.1576ms)
+✔ requires a positive warranty ticket ID for an outbound mutation (1.1489ms)
+✔ allows issuing the exact available stock and leaves zero (0.2326ms)
+✔ rejects an issue exceeding stock with available and requested details (0.19ms)
+✔ rejects invalid transaction type filters (0.1787ms)
+✔ rejects invalid stock query IDs instead of returning empty results (0.2441ms)
+✔ rejects an inbound stock change that exceeds the safe integer range (0.299ms)
+ℹ tests 27
+ℹ suites 0
+ℹ pass 27
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 983.3402

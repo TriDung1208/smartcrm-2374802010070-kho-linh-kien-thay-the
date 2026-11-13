@@ -1,0 +1,3 @@
+﻿GET stocks with invalid centerId: HTTP 400 INVALID_CENTER_ID
+GET stock with invalid ID: HTTP 400 INVALID_CENTER_ID
+GET transactions with invalid type: HTTP 400 INVALID_TRANSACTION_TYPE

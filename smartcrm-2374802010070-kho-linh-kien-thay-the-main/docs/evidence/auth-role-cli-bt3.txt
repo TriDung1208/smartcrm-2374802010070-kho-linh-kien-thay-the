@@ -1,0 +1,16 @@
+
+> smartcrm-backend@1.0.0 migrate
+> node database/migrations/initDatabase.js
+
+Database initialized at C:\Users\trizd\AppData\Local\Temp\bt3-role-evidence-1d5a3324-ddfa-4ed2-90e0-7c28c9bec0d7.db
+New account role: WAREHOUSE
+
+> smartcrm-backend@1.0.0 set-role
+> node database/setUserRole.js cli-evidence ADMIN
+
+Đã cập nhật vai trò ADMIN cho tài khoản cli-evidence.
+
+> smartcrm-backend@1.0.0 set-role
+> node database/setUserRole.js cli-evidence WAREHOUSE
+
+Đã cập nhật vai trò WAREHOUSE cho tài khoản cli-evidence.

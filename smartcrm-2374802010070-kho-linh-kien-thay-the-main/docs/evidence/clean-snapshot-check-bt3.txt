@@ -1,0 +1,7 @@
+BT3 clean Git snapshot verification
+Date: 2026-11-13
+Snapshot: git archive HEAD from D:\
+Command: npm test from smartcrm-2374802010070-kho-linh-kien-thay-the-main\src\backend
+Result: 27 PASS, 0 FAIL, 0 skipped/cancelled.
+Confirmed in snapshot: Dockerfile, docker-compose.yml, .dockerignore, .env.docker.example, and database/dataset/parts.csv.
+Dependency note: reused the installed development dependencies through NODE_PATH; a fresh npm ci was not run.
