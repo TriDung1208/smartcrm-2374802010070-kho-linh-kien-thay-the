@@ -1,0 +1,28 @@
+services:
+  smartcrm:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: smartcrm-stock:local
+    ports:
+      - "3000:3000"
+    environment:
+      APP_PORT: "3000"
+      SMARTCRM_DB_PATH: /app/data/smartcrm.db
+      AUTH_TOKEN_SECRET: ${AUTH_TOKEN_SECRET:?Set AUTH_TOKEN_SECRET in .env before starting}
+    volumes:
+      - smartcrm_data:/app/data
+    restart: unless-stopped
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - "fetch('http://127.0.0.1:3000/health').then((r) => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"
+      interval: 30s
+      timeout: 5s
+      start_period: 15s
+      retries: 3
+
+volumes:
+  smartcrm_data:

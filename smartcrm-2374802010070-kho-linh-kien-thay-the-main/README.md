@@ -46,7 +46,7 @@ Từ PowerShell, clone repo và tạo `.env` từ mẫu:
 
 ```powershell
 git clone https://github.com/TriDung1208/smartcrm-2374802010070-kho-linh-kien-thay-the.git thu-nghiem
-Set-Location thu-nghiem
+Set-Location thu-nghiem\smartcrm-2374802010070-kho-linh-kien-thay-the-main
 Copy-Item .env.example .env
 Set-Location src\backend
 npm ci

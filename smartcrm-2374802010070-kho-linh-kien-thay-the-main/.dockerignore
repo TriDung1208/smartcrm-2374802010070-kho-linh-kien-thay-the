@@ -1,0 +1,17 @@
+.env
+.env.*
+!.env.docker.example
+.git
+.gitignore
+node_modules
+**/node_modules
+src/backend/data
+*.db
+*.db-*
+docs
+tests
+**/*.test.js
+*.pdf
+*.docx
+*.zip
+*.log
