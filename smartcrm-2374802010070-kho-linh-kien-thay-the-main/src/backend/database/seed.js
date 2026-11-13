@@ -1,89 +1,211 @@
+const fs = require('fs');
+const path = require('path');
 const sqlite3 = require('sqlite3').verbose();
 const { DB_PATH, initDatabase } = require('./migrations/initDatabase');
 
-const seedData = {
-  service_centers: [
-    { center_id: 1, center_code: 'TT01', center_name: 'TTBH Quận 10', city: 'TP. Hồ Chí Minh' },
-    { center_id: 2, center_code: 'TT02', center_name: 'TTBH Quận Tân Bình', city: 'TP. Hồ Chí Minh' },
-    { center_id: 3, center_code: 'TT03', center_name: 'TTBH TP. Thủ Đức', city: 'TP. Hồ Chí Minh' },
-    { center_id: 4, center_code: 'TT04', center_name: 'TTBH Ninh Kiều', city: 'Cần Thơ' },
-    { center_id: 5, center_code: 'TT05', center_name: 'TTBH Cái Răng', city: 'Cần Thơ' },
-    { center_id: 6, center_code: 'TT06', center_name: 'TTBH Cầu Giấy', city: 'Hà Nội' }
-  ],
-  issue_categories: [
-    { category_id: 1, category_name: 'MAN_HINH', default_priority: 'CAO', is_active: 1 },
-    { category_id: 2, category_name: 'PIN', default_priority: 'TRUNG_BINH', is_active: 1 },
-    { category_id: 3, category_name: 'SAC', default_priority: 'TRUNG_BINH', is_active: 1 },
-    { category_id: 4, category_name: 'PHAN_MEM', default_priority: 'THAP', is_active: 1 },
-    { category_id: 5, category_name: 'NUOC_VAO', default_priority: 'CAO', is_active: 1 },
-    { category_id: 6, category_name: 'KHAC', default_priority: 'TRUNG_BINH', is_active: 1 }
-  ],
-  technicians: [
-    { technician_id: 1, technician_code: 'KT001', ho_ten: 'Phạm Minh Quyên', center_id: 1, level: 'TRUNG_CAP', is_active: 1 },
-    { technician_id: 2, technician_code: 'KT002', ho_ten: 'Trần Hoài Giang', center_id: 4, level: 'TRUNG_CAP', is_active: 1 },
-    { technician_id: 3, technician_code: 'KT003', ho_ten: 'Đặng Quang Oanh', center_id: 3, level: 'CAO_CAP', is_active: 1 },
-    { technician_id: 4, technician_code: 'KT004', ho_ten: 'Phan Thị Yến', center_id: 4, level: 'TRUNG_CAP', is_active: 1 }
-  ],
-  parts: [
-    { part_id: 1, part_code: 'MH-SS-01', part_name: 'Màn hình Samsung loại 1', unit_price: 2200000 },
-    { part_id: 2, part_code: 'MH-SS-02', part_name: 'Màn hình Samsung loại 2', unit_price: 150000 },
-    { part_id: 3, part_code: 'MH-SS-03', part_name: 'Màn hình Samsung loại 3', unit_price: 150000 },
-    { part_id: 4, part_code: 'MH-XM-01', part_name: 'Màn hình Xiaomi loại 1', unit_price: 280000 },
-    { part_id: 5, part_code: 'MH-XM-02', part_name: 'Màn hình Xiaomi loại 2', unit_price: 650000 }
-  ],
-  part_stock: [
-    { center_id: 1, part_id: 1, quantity: 16, min_threshold: 8 },
-    { center_id: 1, part_id: 2, quantity: 10, min_threshold: 3 },
-    { center_id: 1, part_id: 3, quantity: 4, min_threshold: 3 },
-    { center_id: 1, part_id: 5, quantity: 18, min_threshold: 8 },
-    { center_id: 2, part_id: 1, quantity: 12, min_threshold: 5 },
-    { center_id: 2, part_id: 2, quantity: 7, min_threshold: 3 },
-    { center_id: 3, part_id: 3, quantity: 9, min_threshold: 4 }
-  ]
-};
+const DATASET_DIR = path.join(__dirname, 'dataset');
+
+function parseCsv(contents, fileName) {
+  const rows = [];
+  let row = [];
+  let field = '';
+  let quoted = false;
+  const text = contents.replace(/^\uFEFF/, '');
+
+  for (let index = 0; index < text.length; index += 1) {
+    const character = text[index];
+
+    if (quoted) {
+      if (character === '"' && text[index + 1] === '"') {
+        field += '"';
+        index += 1;
+      } else if (character === '"') {
+        quoted = false;
+      } else {
+        field += character;
+      }
+    } else if (character === '"' && field.length === 0) {
+      quoted = true;
+    } else if (character === ',') {
+      row.push(field);
+      field = '';
+    } else if (character === '\n' || character === '\r') {
+      if (character === '\r' && text[index + 1] === '\n') index += 1;
+      row.push(field);
+      field = '';
+      if (row.some((value) => value !== '')) rows.push(row);
+      row = [];
+    } else {
+      field += character;
+    }
+  }
+
+  if (quoted) throw new Error(`CSV có dấu ngoặc kép chưa đóng: ${fileName}`);
+  if (field !== '' || row.length > 0) {
+    row.push(field);
+    if (row.some((value) => value !== '')) rows.push(row);
+  }
+  if (rows.length === 0) throw new Error(`CSV không có tiêu đề: ${fileName}`);
+
+  const [headers, ...records] = rows;
+  if (new Set(headers).size !== headers.length || headers.some((header) => !header)) {
+    throw new Error(`Tiêu đề CSV không hợp lệ: ${fileName}`);
+  }
+
+  return records.map((values, index) => {
+    if (values.length !== headers.length) {
+      throw new Error(`CSV sai số cột tại dòng ${index + 2}: ${fileName}`);
+    }
+    return Object.fromEntries(headers.map((header, column) => [header, values[column]]));
+  });
+}
+
+function readCsv(fileName) {
+  return parseCsv(fs.readFileSync(path.join(DATASET_DIR, fileName), 'utf8'), fileName);
+}
+
+function integer(value, field, fileName) {
+  const parsed = Number(value);
+  if (!Number.isSafeInteger(parsed)) {
+    throw new Error(`Giá trị ${field} không phải số nguyên hợp lệ trong ${fileName}.`);
+  }
+  return parsed;
+}
+
+function booleanInteger(value, field, fileName) {
+  if (value === 'true' || value === '1') return 1;
+  if (value === 'false' || value === '0') return 0;
+  throw new Error(`Giá trị ${field} không hợp lệ trong ${fileName}.`);
+}
+
+function getDataset() {
+  return [
+    {
+      table: 'service_centers',
+      columns: ['center_id', 'center_code', 'center_name', 'city'],
+      rows: readCsv('service_centers.csv').map((row) => ({
+        center_id: integer(row.center_id, 'center_id', 'service_centers.csv'),
+        center_code: row.center_code,
+        center_name: row.center_name,
+        city: row.thanh_pho
+      }))
+    },
+    {
+      table: 'issue_categories',
+      columns: ['category_id', 'category_name', 'default_priority', 'is_active'],
+      rows: readCsv('issue_categories.csv').map((row) => ({
+        category_id: integer(row.category_id, 'category_id', 'issue_categories.csv'),
+        category_name: row.category_name,
+        default_priority: row.default_priority,
+        is_active: booleanInteger(row.is_active, 'is_active', 'issue_categories.csv')
+      }))
+    },
+    {
+      table: 'technicians',
+      columns: ['technician_id', 'technician_code', 'ho_ten', 'center_id', 'level', 'is_active'],
+      rows: readCsv('technicians.csv').map((row) => ({
+        technician_id: integer(row.technician_id, 'technician_id', 'technicians.csv'),
+        technician_code: row.technician_code,
+        ho_ten: row.ho_ten,
+        center_id: integer(row.center_id, 'center_id', 'technicians.csv'),
+        level: row.level,
+        is_active: booleanInteger(row.is_active, 'is_active', 'technicians.csv')
+      }))
+    },
+    {
+      table: 'parts',
+      columns: ['part_id', 'part_code', 'part_name', 'unit_price'],
+      rows: readCsv('parts.csv').map((row) => ({
+        part_id: integer(row.part_id, 'part_id', 'parts.csv'),
+        part_code: row.part_code,
+        part_name: row.part_name,
+        unit_price: integer(row.unit_price, 'unit_price', 'parts.csv')
+      }))
+    },
+    {
+      table: 'part_stock',
+      columns: ['center_id', 'part_id', 'quantity', 'min_threshold'],
+      rows: readCsv('part_stock.csv').map((row) => ({
+        center_id: integer(row.center_id, 'center_id', 'part_stock.csv'),
+        part_id: integer(row.part_id, 'part_id', 'part_stock.csv'),
+        quantity: integer(row.quantity, 'quantity', 'part_stock.csv'),
+        min_threshold: integer(row.min_threshold, 'min_threshold', 'part_stock.csv')
+      }))
+    },
+    {
+      table: 'part_transactions',
+      columns: ['transaction_id', 'center_id', 'part_id', 'transaction_type', 'quantity', 'created_at', 'ticket_code'],
+      rows: readCsv('part_transactions.csv').map((row) => {
+        const transactionType = { NHAP: 'IN', XUAT: 'OUT' }[row.loai];
+        if (!transactionType) throw new Error(`Loại giao dịch không hợp lệ trong part_transactions.csv: ${row.loai}`);
+        return {
+          transaction_id: integer(row.transaction_id, 'transaction_id', 'part_transactions.csv'),
+          center_id: integer(row.center_id, 'center_id', 'part_transactions.csv'),
+          part_id: integer(row.part_id, 'part_id', 'part_transactions.csv'),
+          transaction_type: transactionType,
+          quantity: integer(row.so_luong, 'so_luong', 'part_transactions.csv'),
+          created_at: row.ngay,
+          ticket_code: row.ticket_code || null
+        };
+      })
+    }
+  ];
+}
 
 function openDb() {
   return new Promise((resolve, reject) => {
-    const db = new sqlite3.Database(DB_PATH, (err) => {
-      if (err) return reject(err);
+    const db = new sqlite3.Database(DB_PATH, (error) => {
+      if (error) return reject(error);
       resolve(db);
     });
   });
 }
 
-function run(db, query, values = []) {
+function run(db, query) {
   return new Promise((resolve, reject) => {
-    db.run(query, values, (error) => {
+    db.run(query, (error) => {
       if (error) return reject(error);
       resolve();
     });
   });
 }
 
-function close(db) {
+function insertRows(db, { table, columns, rows }, ignoreConflicts) {
+  if (rows.length === 0) return Promise.resolve();
+  const placeholders = columns.map(() => '?').join(', ');
+  const conflictMode = ignoreConflicts ? 'OR IGNORE ' : '';
+  const statement = db.prepare(
+    `INSERT ${conflictMode}INTO ${table} (${columns.join(', ')}) VALUES (${placeholders})`
+  );
+
   return new Promise((resolve, reject) => {
-    db.close((error) => {
-      if (error) return reject(error);
-      resolve();
-    });
+    let index = 0;
+    const finish = (error) => {
+      statement.finalize((finalizeError) => {
+        if (error) return reject(error);
+        if (finalizeError) return reject(finalizeError);
+        resolve();
+      });
+    };
+    const insertNext = () => {
+      if (index >= rows.length) return finish();
+      const row = rows[index];
+      index += 1;
+      statement.run(columns.map((column) => row[column]), (error) => {
+        if (error) return finish(error);
+        insertNext();
+      });
+    };
+    insertNext();
   });
 }
 
 async function seedCatalogData() {
+  const dataset = getDataset();
   const db = await openDb();
   try {
     await run(db, 'BEGIN IMMEDIATE');
-    for (const [table, data] of Object.entries(seedData)) {
-      if (data.length === 0) continue;
-      const columns = Object.keys(data[0]);
-      const placeholders = data.map(() => `(${columns.map(() => '?').join(',')})`).join(',');
-      const values = data.flatMap((row) => columns.map((column) => row[column]));
-      await run(
-        db,
-        `INSERT OR IGNORE INTO ${table} (${columns.join(',')}) VALUES ${placeholders}`,
-        values
-      );
-    }
+    for (const table of dataset) await insertRows(db, table, true);
     await run(db, 'COMMIT');
   } catch (error) {
     try {
@@ -93,18 +215,45 @@ async function seedCatalogData() {
     }
     throw error;
   } finally {
-    await close(db);
+    await new Promise((resolve, reject) => {
+      db.close((error) => (error ? reject(error) : resolve()));
+    });
   }
 }
 
-module.exports = { seedCatalogData };
+async function replaceCatalogData() {
+  const dataset = getDataset();
+  const db = await openDb();
+  try {
+    await run(db, 'PRAGMA foreign_keys = ON');
+    await run(db, 'BEGIN IMMEDIATE');
+    for (const table of ['part_transactions', 'part_stock', 'technicians', 'parts', 'issue_categories', 'service_centers']) {
+      await run(db, `DELETE FROM ${table}`);
+    }
+    for (const table of dataset) await insertRows(db, table, false);
+    await run(db, 'COMMIT');
+  } catch (error) {
+    try {
+      await run(db, 'ROLLBACK');
+    } catch (rollbackError) {
+      error.rollbackError = rollbackError;
+    }
+    throw error;
+  } finally {
+    await new Promise((resolve, reject) => {
+      db.close((error) => (error ? reject(error) : resolve()));
+    });
+  }
+}
+
+module.exports = { replaceCatalogData, seedCatalogData };
 
 if (require.main === module) {
   initDatabase()
-    .then(seedCatalogData)
-    .then(() => console.log(`Catalog data seeded at ${DB_PATH}`))
+    .then(replaceCatalogData)
+    .then(() => console.log(`Dataset imported at ${DB_PATH}; user accounts were preserved.`))
     .catch((error) => {
-      console.error('Database seed failed:', error);
+      console.error('Dataset import failed:', error);
       process.exitCode = 1;
     });
 }
