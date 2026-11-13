@@ -1,14 +1,20 @@
 const { getStockByCenterAndPart, getAllStock, getLowStock, applyStockTransaction, getTransactions } = require('./stockRepository');
-const { validateStockMutation, validateTransactionType } = require('./stockRules');
+const {
+  validateStockMutation,
+  validateOptionalStockId,
+  validateTransactionType
+} = require('./stockRules');
 
 async function getStock(centerId, partId) {
-  if (!centerId || !partId) {
+  const validCenterId = validateOptionalStockId(centerId, 'centerId');
+  const validPartId = validateOptionalStockId(partId, 'partId');
+  if (validCenterId === null || validPartId === null) {
     const error = new Error('centerId and partId are required');
     error.statusCode = 400;
     throw error;
   }
 
-  const stock = await getStockByCenterAndPart(Number(centerId), Number(partId));
+  const stock = await getStockByCenterAndPart(validCenterId, validPartId);
   if (!stock) {
     const error = new Error('Stock record not found');
     error.statusCode = 404;
@@ -18,11 +24,11 @@ async function getStock(centerId, partId) {
 }
 
 async function getOverviewStocks(centerId = null) {
-  return getAllStock(centerId);
+  return getAllStock(validateOptionalStockId(centerId, 'centerId'));
 }
 
 async function getAlerts(centerId = null) {
-  const rows = await getLowStock(centerId);
+  const rows = await getLowStock(validateOptionalStockId(centerId, 'centerId'));
   return rows.map((row) => ({
     centerId: row.center_id,
     partId: row.part_id,
@@ -74,7 +80,9 @@ async function issueStock({ centerId, partId, ticketId, quantity, note = '' }) {
 }
 
 async function getTransactionsList(centerId = null, type = null) {
-  const rows = await getTransactions(centerId, validateTransactionType(type));
+  const validCenterId = validateOptionalStockId(centerId, 'centerId');
+  const validType = validateTransactionType(type);
+  const rows = await getTransactions(validCenterId, validType);
   return {
     items: rows,
     total: rows.length

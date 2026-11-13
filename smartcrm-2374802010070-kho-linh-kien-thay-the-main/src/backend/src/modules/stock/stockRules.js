@@ -19,6 +19,11 @@ function positiveInteger(value, field) {
   return number;
 }
 
+function validateOptionalStockId(value, field) {
+  if (value === null || value === undefined || value === '') return null;
+  return positiveInteger(value, field);
+}
+
 function validateTransactionType(type) {
   if (type === null || type === undefined || type === '') return null;
   if (type !== 'IN' && type !== 'OUT') {
@@ -62,6 +67,7 @@ function calculateStockChange(currentStock, quantity, type) {
 
 module.exports = {
   validateStockMutation,
+  validateOptionalStockId,
   validateTransactionType,
   calculateStockChange
 };
