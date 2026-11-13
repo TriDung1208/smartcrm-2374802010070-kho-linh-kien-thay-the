@@ -1,6 +1,6 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { calculateStockChange, validateStockMutation } = require('./stockRules');
+const { calculateStockChange, validateStockMutation, validateTransactionType } = require('./stockRules');
 
 test('accepts an inbound stock mutation with positive integer values', () => {
   assert.deepEqual(
@@ -45,5 +45,14 @@ test('rejects an issue exceeding stock with available and requested details', ()
   assert.throws(
     () => calculateStockChange(2, 3, 'OUT'),
     { code: 'INSUFFICIENT_STOCK', statusCode: 409, details: { available: 2, requested: 3 } }
+  );
+});
+
+test('rejects invalid transaction type filters', () => {
+  assert.equal(validateTransactionType('IN'), 'IN');
+  assert.equal(validateTransactionType(null), null);
+  assert.throws(
+    () => validateTransactionType('BAD'),
+    { code: 'INVALID_TRANSACTION_TYPE', statusCode: 400 }
   );
 });

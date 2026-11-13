@@ -19,6 +19,17 @@ function positiveInteger(value, field) {
   return number;
 }
 
+function validateTransactionType(type) {
+  if (type === null || type === undefined || type === '') return null;
+  if (type !== 'IN' && type !== 'OUT') {
+    const error = new Error('type must be IN or OUT');
+    error.statusCode = 400;
+    error.code = 'INVALID_TRANSACTION_TYPE';
+    throw error;
+  }
+  return type;
+}
+
 function validateStockMutation({ centerId, partId, quantity, ticketId, type }) {
   const values = {
     centerId: positiveInteger(centerId, 'centerId'),
@@ -49,4 +60,8 @@ function calculateStockChange(currentStock, quantity, type) {
   return type === 'IN' ? currentStock + quantity : currentStock - quantity;
 }
 
-module.exports = { validateStockMutation, calculateStockChange };
+module.exports = {
+  validateStockMutation,
+  validateTransactionType,
+  calculateStockChange
+};

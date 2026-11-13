@@ -1,5 +1,5 @@
 const { getStockByCenterAndPart, getAllStock, getLowStock, applyStockTransaction, getTransactions } = require('./stockRepository');
-const { validateStockMutation } = require('./stockRules');
+const { validateStockMutation, validateTransactionType } = require('./stockRules');
 
 async function getStock(centerId, partId) {
   if (!centerId || !partId) {
@@ -74,7 +74,7 @@ async function issueStock({ centerId, partId, ticketId, quantity, note = '' }) {
 }
 
 async function getTransactionsList(centerId = null, type = null) {
-  const rows = await getTransactions(centerId, type);
+  const rows = await getTransactions(centerId, validateTransactionType(type));
   return {
     items: rows,
     total: rows.length
