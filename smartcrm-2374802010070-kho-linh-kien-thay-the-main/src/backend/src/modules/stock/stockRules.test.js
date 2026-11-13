@@ -70,3 +70,10 @@ test('rejects invalid stock query IDs instead of returning empty results', () =>
     { code: 'INVALID_CENTER_ID', statusCode: 400 }
   );
 });
+
+test('rejects an inbound stock change that exceeds the safe integer range', () => {
+  assert.throws(
+    () => calculateStockChange(Number.MAX_SAFE_INTEGER, 1, 'IN'),
+    { code: 'STOCK_LIMIT_EXCEEDED', statusCode: 409 }
+  );
+});

@@ -54,6 +54,17 @@ function calculateStockChange(currentStock, quantity, type) {
     throw new Error('Current stock must be a non-negative integer');
   }
 
+  if (type === 'IN') {
+    const updatedStock = currentStock + quantity;
+    if (!Number.isSafeInteger(updatedStock)) {
+      const error = new Error('The resulting stock exceeds the supported integer range');
+      error.statusCode = 409;
+      error.code = 'STOCK_LIMIT_EXCEEDED';
+      throw error;
+    }
+    return updatedStock;
+  }
+
   if (type === 'OUT' && quantity > currentStock) {
     const error = new Error(`Available stock is ${currentStock} but requested quantity is ${quantity}`);
     error.statusCode = 409;
@@ -62,7 +73,7 @@ function calculateStockChange(currentStock, quantity, type) {
     throw error;
   }
 
-  return type === 'IN' ? currentStock + quantity : currentStock - quantity;
+  return currentStock - quantity;
 }
 
 module.exports = {
